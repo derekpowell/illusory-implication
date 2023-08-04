@@ -43,3 +43,11 @@ vignettes/*.pdf
 
 # non-public directories
 /local/
+
+*.pdf
+
+# latex stuff
+*.fff
+*.log
+*.tex
+*.ttt

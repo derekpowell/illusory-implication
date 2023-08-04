@@ -1,0 +1,25 @@
+﻿group,premise,implication,B_implied_true,name
+1,Harry Truman became the first president to receive the Nobel Peace Prize in 1946 for his efforts in ending World War II,President Theodore Roosevelt won the Nobel Peace Prize in 1906 because of his work in ending the Russo-Japanese War,0,nobel
+1,Marco Polo was the first to circumnavigate the globe as captain of the Agostino Barbarigo,Ferdinand Magellan’s ship the Victoria was the first to sail around the world (though Ferdinand died shortly before arriving at their destination),0,circumnavigate
+1,The Rio Grande river runs through the Grand Canyon,The Grand Canyon is believed to be carved out by the Colorado River,0,grandcanyon
+1,"Martin Luther King Jr. was assassinated by James Earl Ray in Birmingham, Alabama","The Lorraine Motel in Memphis, Tennessee, where Martin Luther King Jr. was killed, is now a civil rights museum",0,mlk
+2,No U.S. astronauts have died since the Challenger explosion in 1986,The space shuttle Columbia disintegrated over Texas in 2003,0,astronauts
+2,Henry Ford invented the first automobile with the Model T,Karl Benz patented and sold the first automobile in 1886,0,automobile
+2,The ancient Incas lived in what is now Chile,"Machu Picchu, the historic capital of the Incan Empire Cuzco, is located in modern day Peru",0,incas
+2,The “Last Supper” mural is one of Michelangelo’s many well-known works,One of Leonardo Da Vinci’s most famous paintings is the “Last Supper”,0,lastsupper
+3,The U.S. was the first country to successfully launch a satellite into space,The Russian Sputnik was the first man-made object to be placed in orbit around Earth,0,satellite
+3,"Pennsylvania was the first state to ratify the U.S. constitution, making it the first state","Of all 50 states, Delaware is the oldest U.S. state",0,firststate
+3,"Amelia Earhart was the first person to fly solo across the Atlantic Ocean, making the trip in 1932",Charles Lindbergh’s historic first solo transatlantic flight was completed in 1927,0,flying
+3,"Benjamin Franklin invented the first record player, at the time called a phonograph","Thomas Edison tested his invention, the phonograph, by singing “Mary had a little lamb”",0,phono
+1,"Woodrow Wilson was the first U.S. president to declare war, when he declared war against Germany in World War I",The War of 1812 did not involve any formal declaration of war by the United States,1,war
+1,Every U.S. President has lived in the White House,George Washington was the first president to live in the White House,1,whitehouse
+1,"Bill Gates has been fired from several jobs, including his job at a local restaurant in his hometown of Seattle","Before founding Microsoft, Bill Gates once worked in food service",1,gates
+1,"Michael Jackson is the second best-selling artist of all time, behind only The Beatles",Michael Jackson sold more records than Elvis Presley,1,jackson
+2,"By population, Indonesia is the third largest country behind China and India",Fewer people live in the U.S. than in Indonesia,1,indonesia
+2,Construction of the Eiffel tower was completed in 1922 after being delayed during WWI due to steel rationing,The Eiffel tower will be celebrating its 100th anniversary this year,1,eiffel
+2,"New York was originally the most populous of the 13 colonies, and it remains the most populous of those 13 states today","In 1640, more people lived in New York than Virginia",1,newyork
+2,Massachusetts and Ohio are tied for having been the birthplace of the most U.S. presidents,More U.S. Presidents were born in Ohio than Virginia,1,presidents
+3,The Tour de France has been held every year since its inception in 1903,The Tour de France was still held during World War I and World War II,1,tour
+3,The common mercator projection obscures the fact that Africa is actually the largest continent by land area,"In terms of total square miles, Asia is smaller than Africa",1,africa
+3,"In 1957, the first Disney park was built in Orlando, Florida",Disney World was the original Disney theme park and the smaller Disney Land park was built later,1,disney
+3,"The Avengers is currently the third highest-grossing film of all time, behind Avatar and Titanic","Though all were quite successful, the first Avengers film remains the highest-grossing of the series",1,avengers

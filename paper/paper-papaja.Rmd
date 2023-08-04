@@ -1,0 +1,998 @@
+---
+title             : "The title"
+shorttitle        : "Title"
+
+author: 
+  - name          : "Justin Mikell"
+    affiliation   : "1"
+    corresponding : yes    # Define only one corresponding author
+    address       : "Arizona State University - West Campus, 4701 W. Thunderbird Rd., Glendale, AZ 85306"
+    email         : "jmikell@asu.edu"
+    role:         # Contributorship roles (e.g., CRediT, https://casrai.org/credit/)
+      - "Investigation"
+      - "Methodology"
+      - "Visualization"
+      - "Writing - Original Draft Preparation"
+      - "Writing - Review & Editing"
+  - name          : "Derek Powell"
+    affiliation   : "1"
+    role:
+      - "Conceptualization"
+      - "Formal Analysis"
+      - "Methodology"
+      - "Writing - Original Draft Preparation"
+      - "Writing - Review & Editing"
+      - "Validation"
+      - "Supervision"
+
+affiliation:
+  - id            : "1"
+    institution   : "Arizona State University"
+
+authornote: |
+  Arizona State University, School of Social and Behavioral Sciences
+
+  Materials for all experiments can be found at https://osf.io/znq3y/. Preregistration information for Experiments can be found at https://osf.io/c4w8s/ (Exp. 1), https://osf.io/czkdh/ (Exp. 2), and https://osf.io/5ewa6 (Exp. 3). 
+
+abstract: |
+  Numerous psychological findings have shown that mere exposure to ideas makes those ideas seem more true, a finding commonly referred to as the “illusory truth” effect [e.g. @hasher.etal1977]. In the presence of pervasive misinformation, this basic feature of cognition may undermine the functioning of a democratic society [@pennycook.etal2018]. However, genuine beliefs do not only affect judgments about individual statements, they also imply other beliefs and drive decision-making. Here, we sought to examine whether mere exposure to statements produces genuine beliefs by examining whether people draw inferences from statements after mere exposure. Surprisingly, and in contrast to fluency or familiarity-based accounts of the illusory truth effect [e.g. @dechene.etal2010], we found that exposure to “premise” statements affected participants’ truth ratings for novel “implied” statements. This “illusory implication” effect suggests that the consequences of exposure to false statements reach further than previously thought and calls for a new mechanistic account of these effects.
+  
+  <!-- https://tinyurl.com/ybremelq -->
+  
+keywords          : "Illusory truth; Metacognition; Cognitive Psychology; Misinformation"
+wordcount         : "X"
+
+bibliography      : "references.bib"
+
+floatsintext      : yes
+linenumbers       : yes
+draft             : no
+mask              : no
+
+figurelist        : no
+tablelist         : no
+footnotelist      : no
+
+classoption       : "man"
+output            : papaja::apa6_pdf
+---
+
+```{r setup, include = FALSE}
+library("papaja")
+r_refs("r-references.bib")
+```
+
+```{r analysis-preferences}
+# Seed for random number generation
+set.seed(42)
+# knitr::opts_chunk$set(cache.extra = knitr::rand_seed)
+```
+
+
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(fig.width=3, fig.height=3, fig.crop = F, 
+                      fig.pos = "tb", fig.path='figs/',
+                      echo=F, warning=F, cache=F, 
+                      message=F, sanitize = T)
+```
+
+```{r}
+library(tidyverse)
+library(patchwork)
+library(textstem)
+
+df <- read_csv("../data/illusory-truth-main.csv") %>% 
+  mutate(
+    response = ordered(response, levels = c("Definitely False", "Probably False", "Maybe False", "Maybe True", "Probably True", "Definitely True"))
+  ) %>% 
+  mutate(resp_num = recode(response,
+                           `Definitely True` = 2.5,
+                           `Probably True` = 1.5,
+                           `Maybe True` = .5,
+                           `Maybe False` = -.5,
+                           `Probably False` = -1.5,
+                           `Definitely False` = -2.5)
+         ) %>% 
+  mutate(
+    B_implied_true = ifelse(item_pair %in% c("war", "whitehouse", "bezos", "jackson",
+                                          "indonesia", "eiffel", "newyork", "presidents",
+                                          "tour", "africa", "disney", "avengers"), 
+                            "F implied T", "T implied F"),
+    B_implied_true = relevel(factor(B_implied_true), ref = "T implied F"),
+      acc_num = case_when(
+        item_type=="B" & B_implied_true == "F implied T" ~ -1*resp_num,
+        item_type=="B" & B_implied_true != "F implied T" ~ resp_num,
+        item_type=="A" ~ -1*resp_num,
+        item_type=="Falsehood" ~ -1*resp_num,
+        TRUE ~ resp_num
+        ),
+    acc_ordered = ordered(acc_num)
+  )
+```
+
+```{r fit-models-exp1, include=F}
+library(brms)
+
+## Experiment 1
+
+## Premises
+
+fit_premise_fact <- brm(
+  response ~ exposed + (1|subj_id) + (1|item_pair),
+  data = df %>% 
+    filter(phase=="test", item_type=="A", exposure_cond=="fact"),
+  chains = 4,
+  cores = 4,
+  family=cumulative(),
+  file="../local/fit_premise_fact"
+)
+
+fit_premise_quiz <- brm(
+  response ~ exposed + (1|subj_id) + (1|item_pair),
+  data = df %>% 
+    filter(phase=="test", item_type=="A", exposure_cond=="quiz"),
+  chains = 4,
+  cores = 4,
+  family=cumulative(),
+  file="../local/fit_premise_quiz"
+)
+
+## within-subjs test
+
+df_reg_within <- df %>% 
+  filter(exposure_cond=="quiz") %>%
+  filter(item_type == "A") %>% 
+  ungroup() %>% 
+  drop_na(response) %>% 
+  select(subj_id, condition, exposed, exposure_cond, item_pair, phase, response)
+
+## this is a bit needlessly complex but it is equivalent to testing the difference
+fit_premise_within <- brm(
+  response ~ phase + (1|subj_id:item_pair),
+  data = df_reg_within,
+  chains = 4,
+  cores = 4,
+  family=cumulative(),
+  file="../local/fit_premise_within"
+)
+
+## Implications
+
+fit_imp_fact <- brm(
+  acc_ordered ~ exposed*B_implied_true + (1|subj_id) + (1|item_pair),
+  data = df %>% 
+    filter(phase=="test", item_type=="B", exposure_cond=="fact"),
+  family = cumulative(),
+  chains = 4,
+  cores = 4,
+  file="../local/fit_imp_fact"
+)
+
+# fit_imp_quiz <- brm(
+#   acc_ordered ~ exposed + (1|subj_id) + (1|item_pair),
+#   data = df %>% 
+#     filter(phase=="test", item_type=="B", exposure_cond=="quiz"),
+#   family = cumulative(),
+#   chains = 4,
+#   cores = 4,
+#   file="../local/fit_imp_quiz"
+# )
+
+df_reg <- df %>% 
+  mutate(
+    familiarity = exposed,
+    implication = case_when(
+      B_implied_true == "F implied T" & exposed==1 ~ 1,
+      B_implied_true == "T implied F" & exposed==1 ~ -1,
+      TRUE ~ 0
+    )
+    # implied_true = if_else(B_implied_true == "F implied T" & exposure==1, 1, 0),
+    # implied_false = if_else(B_implied_true != "F implied T" & exposure==1, 1, 0),
+    ) %>% 
+    filter(phase=="test", item_type=="B")
+
+
+fit_imp_quiz_int <- brm(
+  response ~ familiarity + implication + B_implied_true + 
+    (1 + familiarity + implication|subj_id) + 
+    (1 + familiarity + implication|item_pair),  # familiarity + implication + grouping (optional)
+  data = df_reg %>% filter(exposure_cond=="quiz"),
+  family = cumulative(),
+  chains = 4,
+  cores = 4,
+  file="../local/fit_imp_quiz_int_max"
+)
+
+fit_imp_fact_int <- brm(
+  response ~ familiarity + implication + B_implied_true + 
+    (1 + familiarity + implication|subj_id) + 
+    (1 + familiarity + implication|item_pair),  # familiarity + implication + grouping (optional)
+  data = df_reg %>% filter(exposure_cond=="fact"),
+  family = cumulative(),
+  chains = 4,
+  cores = 4,
+  file="../local/fit_imp_fact_int_max"
+)
+
+```
+
+
+```{r load-exp2, include=F}
+
+df2 <- read_csv("../data/illusory-truth-main2.csv") %>% 
+  mutate(
+    response = ordered(response, levels = c("Definitely False", "Probably False", "Maybe False", "Maybe True", "Probably True", "Definitely True"))
+  ) %>% 
+  mutate(resp_num = recode(response,
+                           `Definitely True` = 2.5,
+                           `Probably True` = 1.5,
+                           `Maybe True` = .5,
+                           `Maybe False` = -.5,
+                           `Probably False` = -1.5,
+                           `Definitely False` = -2.5)
+         ) %>% 
+  mutate(
+    B_implied_true = ifelse(item_pair %in% c("war", "whitehouse", "bezos", "jackson",
+                                          "indonesia", "eiffel", "newyork", "presidents",
+                                          "tour", "africa", "disney", "avengers"), 
+                            "F implied T", "T implied F"),
+    B_implied_true = relevel(factor(B_implied_true), ref = "T implied F"),
+      acc_num = case_when(
+        item_type=="B" & B_implied_true == "F implied T" ~ -1*resp_num,
+        item_type=="B" & B_implied_true != "F implied T" ~ resp_num,
+        item_type=="A" ~ -1*resp_num,
+        item_type=="Falsehood" ~ -1*resp_num,
+        TRUE ~ resp_num
+        ),
+    acc_ordered = ordered(acc_num)
+  )
+```
+
+```{r fit-models-exp2, include=F}
+
+## Experiment 2
+
+df_reg2 <- df2 %>% 
+  mutate(
+    familiarity = exposed,
+    implication = case_when(
+      B_implied_true == "F implied T" & exposed==1 ~ 1,
+      B_implied_true == "T implied F" & exposed==1 ~ -1,
+      TRUE ~ 0
+    )
+    # implied_true = if_else(B_implied_true == "F implied T" & exposure==1, 1, 0),
+    # implied_false = if_else(B_implied_true != "F implied T" & exposure==1, 1, 0),
+    ) %>% 
+    filter(phase=="test", item_type=="B", exposure_cond=="interest")
+
+## Implications
+
+fit_imp_exp2 <- brm(
+  response ~ familiarity + implication + B_implied_true + 
+    (1 + familiarity + implication|subj_id) + 
+    (1 + familiarity + implication|item_pair),  # familiarity + implication + grouping (optional)
+  data = df_reg2,
+  family = cumulative(),
+  prior = set_prior("lkj(5)", class = "cor"),
+  chains = 4,
+  cores = 4,
+  iter = 3000,
+  control = list(adapt_delta=.9),
+  file="../local/fit_imp_exp2_max"
+)
+
+# Premises
+
+fit_prem_exp2 <- brm(
+  response ~ exposed + (1 + exposed|subj_id) + (1 + exposed|item_pair),
+  data = df2 %>%
+    filter(phase=="test", item_type=="A"),
+  family = cumulative(),
+  chains = 4,
+  cores = 4,
+  file="../local/fit_prem_exp2_max"
+)
+```
+
+
+```{r fit-models-exp3, include=F}
+df_all <- read_csv("../data/illusory-truth-main-2.csv")
+  
+df_passing <- df_all %>% 
+  mutate(
+    fail_checks = case_when(
+      (item == "att_exp_titanic") & (response != "Statement B") ~ 1,
+      (item == "att_exp_old") & (response != "Statement A") ~ 1,
+      (item == "att_exp_wright") & (response != "Statement B") ~ 1,
+      (item == "att_test_taxes") & (grepl("True", response)) ~ 1,
+      (item == "att_test_pop") & (grepl("False", response)) ~ 1,
+      (item == "att_test_tall") & (grepl("True", response)) ~ 1,
+      instructions_check!="Mix of true and false" ~ 1,
+      TRUE ~ 0
+    )
+  ) %>%
+  group_by(subj_id) %>%
+  filter(sum(fail_checks) < 1) %>% # remove anyone failing checks (none fail)
+  filter(!grepl("att_", item)) %>% # (remove check items)
+  select(-fail_checks) %>% 
+  ungroup() %>% 
+  mutate(
+    suspicious = if_else(susp_check1 == "Yes", 1, 0)
+  )
+
+df3 <- df_passing  %>% 
+  filter(phase=="test") %>% 
+  mutate(
+    response = ordered(response, levels = c("Definitely False", "Probably False", "Maybe False", "Maybe True", "Probably True", "Definitely True"))
+  ) %>% 
+  mutate(resp_num = recode(response,
+                           `Definitely True` = 2.5,
+                           `Probably True` = 1.5,
+                           `Maybe True` = .5,
+                           `Maybe False` = -.5,
+                           `Probably False` = -1.5,
+                           `Definitely False` = -2.5)
+         ) %>% 
+  mutate(
+    B_implied_true = ifelse(item %in% c("war", "whitehouse", "gates", "jackson",
+                                          "indonesia", "eiffel", "newyork", "presidents",
+                                          "tour", "africa", "disney", "avengers"), 
+                            "F implied T", "T implied F"),
+    B_implied_true = relevel(factor(B_implied_true), ref = "T implied F"),
+      acc_num = case_when(
+        item_type=="B" & B_implied_true == "F implied T" ~ -1*resp_num,
+        item_type=="B" & B_implied_true != "F implied T" ~ resp_num,
+        item_type=="A" ~ -1*resp_num,
+        item_type=="Falsehood" ~ -1*resp_num,
+        TRUE ~ resp_num
+        ),
+    acc_ordered = ordered(acc_num)
+  )
+
+df_open_coded <- read_csv("../data/illusory-truth-main-2-free-responses-coded.csv") %>%
+  select(subj_id, flagged)
+
+df3 <- df3 %>% 
+  left_join(df_open_coded, by = "subj_id")
+
+## Main analyses
+
+df_reg3 <- df3 %>% 
+  mutate(
+    familiarity = exposed,
+    implication = case_when(
+      B_implied_true == "F implied T" & exposed==1 ~ 1,
+      B_implied_true == "T implied F" & exposed==1 ~ -1,
+      TRUE ~ 0
+    )
+    # implied_true = if_else(B_implied_true == "F implied T" & exposure==1, 1, 0),
+    # implied_false = if_else(B_implied_true != "F implied T" & exposure==1, 1, 0),
+    ) %>% 
+    filter(phase=="test", item_type=="B")
+
+
+fit_imp_maximal <- brm(
+  response ~ familiarity + implication + B_implied_true + (1 + familiarity + implication + B_implied_true |subj_id) + (1 + familiarity + implication|item),  # familiarity + implication + grouping (optional)
+  data = df_reg3,
+  family = cumulative(),
+  chains = 4,
+  cores = 4,
+  iter = 3000,
+  control = list(adapt_delta = .95),
+  file="../local/fit_imp_rep_maximal"
+)
+
+# fit_imp <- brm(
+#   response ~ familiarity + implication + B_implied_true + (1 |subj_id) + (1 |item),  # familiarity + implication + grouping (optional)
+#   data = df_reg,
+#   family = cumulative(),
+#   chains = 4,
+#   cores = 4,
+#   file="local/fit_imp_rep"
+# )
+
+### excluding suspicious
+
+df_reg3_nosus <- df_reg3 %>% 
+    filter(suspicious==0)
+
+
+fit_imp_maximal2 <- brm(
+  response ~ familiarity + implication + B_implied_true + (1 + familiarity + implication + B_implied_true |subj_id) + (1 + familiarity + implication|item),  # familiarity + implication + grouping (optional)
+  data = df_reg3_nosus,
+  family = cumulative(),
+  chains = 4,
+  cores = 4,
+  iter = 3000,
+  control = list(adapt_delta = .95),
+  file="../local/fit_imp_rep_maximal2"
+)
+
+df_reg3_noflag <- df_reg3 %>% 
+    filter(suspicious==0, flagged==0)
+
+
+fit_imp_maximal3 <- brm(
+  response ~ familiarity + implication + B_implied_true + (1 + familiarity + implication + B_implied_true |subj_id) + (1 + familiarity + implication|item),  # familiarity + implication + grouping (optional)
+  data = df_reg3_noflag,
+  family = cumulative(),
+  chains = 4,
+  cores = 4,
+  iter = 3000,
+  control = list(adapt_delta = .95),
+  file="../local/fit_imp_rep_maximal3"
+)
+
+```
+
+```{r, item-fluency-analysis, include=F}
+statements_raw <- read_csv("../items.csv")
+
+clean_words <- function(x){
+  lower <- str_to_lower(x)
+  word_list <- str_split(lower, " ")
+  lemmas <- lemmatize_strings(word_list[[1]])
+  # no_stops <- lemmas[ !(lemmas %in% lemmatize_words(lexicon::sw_lucene)) ]
+  lemma_stems <- stem_words(lemmas)
+
+  out <- gsub("('|,)", "", lemma_stems)
+
+  return(out)
+
+}
+
+statements <- statements_raw %>%
+  mutate(
+    prem_lst = map(premise, clean_words),
+    imp_lst = map(implication, clean_words),
+    overlap = map2_dbl(prem_lst, imp_lst, ~sum(.y %in% .x)), # how many words in implication were in premise?
+    overlap_prop = overlap/length(imp_lst)
+  )
+
+statement_overlap <- statements %>%
+  group_by(B_implied_true) %>%
+  summarize(overlap = median(overlap_prop))
+
+item_fluency_fig <- statements %>%
+  mutate(B_implied_true = if_else(B_implied_true==1, "F implied T", "T implied F")) %>% 
+  ggplot(aes(x = factor(B_implied_true), y = overlap_prop)) +
+  stat_summary(fun.data=mean_se, fun.args = list(mult=2), 
+                 geom="pointrange", color="red", shape=3, position=position_dodge()) +
+  geom_jitter(width=.1, size=2) +
+  # geom_dotplot(binaxis="y", stackdir="center", ,
+  #              stackratio=1.5, dotsize=.6) +
+  theme_bw(base_size = 12) +
+  theme(panel.grid=element_blank()) +
+  ylim(0,.5) +
+  labs(y = "Prop. shared lemmas", x = "Item Group")
+```
+
+
+```{r make-tables, include=F}
+make_table_df <- function(fit){
+  fit_sum <- summary(fit)
+
+  tbl_sum <- as_tibble(fit_sum$fixed, rownames="Term") %>%
+    # bind_rows(
+    #   as_tibble(fit_sum$random$item, rownames="Term") %>%
+    #     mutate(Term = paste0("item_",Term))
+    # ) %>%
+    # bind_rows(
+    #   as_tibble(fit_sum$random$subj_id, rownames="Term") %>%
+    #     mutate(Term = paste0("subj_",Term))
+    # ) %>%
+    select(-Rhat, -Est.Error, -Bulk_ESS, -Tail_ESS)
+
+  return(tbl_sum)
+}
+
+make_table <- function(table_df, caption=NULL){
+
+  kableExtra::kbl(table_df, digits = 2, booktabs = T, caption=caption, escape = F, format="latex") %>%
+    kableExtra::kable_classic(full_width=F)
+}
+
+mytable1 <- make_table_df(fit_imp_quiz_int) %>% 
+  rename(`$CI_{2.5\\%}$` = `l-95% CI`,`$CI_{97.5\\%}$` = `u-95% CI`) %>%
+  mutate(
+    Term = case_when(
+      Term == "B_implied_trueFimpliedT" ~ "implication type",
+      # grepl("Intercept\\[", Term) ~ gsub("Intercept\\[(.*)\\]","$\\\\alpha_{\\1}$", Term),
+      Term == "item_sd(Intercept)" ~ "$\\sigma_{item}$",
+      Term == "subj_sd(Intercept)" ~ "$\\sigma_{subj}$",
+      TRUE ~ Term
+    )
+  ) %>% 
+  make_table("Population coefficients of Bayesian regression model for Implication effects in Experiment 1.")
+
+mytable2 <- make_table_df(fit_imp_exp2) %>% 
+  rename(`$CI_{2.5\\%}$` = `l-95% CI`,`$CI_{97.5\\%}$` = `u-95% CI`) %>%
+  mutate(
+    Term = case_when(
+      Term == "B_implied_trueFimpliedT" ~ "implication type",
+      # grepl("Intercept\\[", Term) ~ gsub("Intercept\\[(.*)\\]","$\\\\alpha_{\\1}$", Term),
+      grepl("familiarity", Term) ~ "familiarity",
+      # Term == "item_sd(Intercept)" ~ "$\\sigma_{item}$",
+      # Term == "subj_sd(Intercept)" ~ "$\\sigma_{subj}$",
+      TRUE ~ Term
+    )
+  ) %>% 
+  make_table("Population coefficients of Bayesian regression model for Implication effects in Experiment 2.")
+
+mytable3 <- make_table_df(fit_imp_maximal) %>% 
+  rename(`$CI_{2.5\\%}$` = `l-95% CI`,`$CI_{97.5\\%}$` = `u-95% CI`) %>%
+  mutate(
+    Term = case_when(
+      Term == "B_implied_trueFimpliedT" ~ "implication type",
+      # grepl("Intercept\\[", Term) ~ gsub("Intercept\\[(.*)\\]","$\\\\alpha_{\\1}$", Term),
+      grepl("familiarity", Term) ~ "familiarity",
+      # Term == "item_sd(Intercept)" ~ "$\\sigma_{item}$",
+      # Term == "subj_sd(Intercept)" ~ "$\\sigma_{subj}$",
+      TRUE ~ Term
+    )
+  ) %>% 
+  make_table("Population coefficients of Bayesian regression model for Implication effects in Experiment 3.")
+
+```
+
+```{r helpers, include=F}
+report_reg_coef <- function(model, coef_name){
+  
+  res_df <- broom.mixed::tidy(model, effects="fixed")
+  res <- res_df %>% 
+    filter(term == coef_name) %>% 
+    mutate_if(is.numeric, ~round(., 3))
+  
+  
+  res_text <- paste0(res[[1,4]], ", 95% CI [", res[[1,6]],", ",res[[1,7]], "]")
+  return(res_text)
+}
+
+# report_reg_coef(fit_imp_exp2, "familiarityTRUE")
+# report_reg_coef(fit_imp_fact, "exposed")
+```
+
+```{r demographics, include=F}
+df_demo <- df %>% 
+  group_by(subj_id) %>% 
+  summarize(
+    age = first(age),
+    gender = first(gender)
+  )
+  
+df2_demo <- df2 %>% 
+  group_by(subj_id) %>% 
+  summarize(
+    age = first(age),
+    gender = first(gender)
+  )
+
+df3_demo <- df3 %>% 
+  group_by(subj_id) %>% 
+  summarize(
+    age = first(age),
+    gender = first(gender)
+  )
+
+exp1_n_f <- df_demo %>% 
+  filter(gender=="Female") %>% 
+  nrow()
+
+exp2_n_f <- df2_demo %>% 
+  filter(gender=="Female") %>% 
+  nrow()
+
+exp3_n_f <- df3_demo %>% 
+  filter(gender=="Female") %>% 
+  nrow()
+
+exp1_age <- median(df_demo$age, na.rm=TRUE)
+exp2_age <- median(df2_demo$age, na.rm=TRUE)
+exp3_age <- median(df3_demo$age, na.rm=TRUE)
+
+exp3_susp_count <- df3 %>% 
+  filter(suspicious==1) %>% 
+  distinct(subj_id) %>% 
+  nrow()
+
+exp3_flagged_count <- df3 %>% 
+  filter(suspicious==0) %>%
+  distinct(subj_id, .keep_all = TRUE) %>% 
+  filter(flagged==1) %>% 
+  nrow()
+
+
+```
+
+
+## Relevance Statement
+
+Three pre-registered experiments examined whether mere exposure to ideas might lead them to be adopted as beliefs. It is well-established that mere exposure, such as in a true-or-false quiz, can lead people to later rate statements as more true (the “illusory truth” effect). If people's beliefs are affected by mere exposure, then the pervasiveness of misinformation would be even more harmful than currently recognized. However, leading theories attribute illusory truth effects to feelings of familiarity or fluency rather than changes in beliefs. These metacognitive heuristics are unlikely to produce further inferences or drive decision-making, as would beliefs. In contrast, we demonstrate that mere exposure to statements affected participants' responses to other novel statements (what we term an “illusory implication” effect), suggesting that mere exposure can lead to genuine belief. Our findings illustrate new dangers in exposure to misinformation, showing that mere exposure may have more wide-ranging influences than previously understood.
+
+
+\newpage
+
+Every day, people are faced with a barrage of unsupported claims, from pestering ad campaigns to blatant disinformation on social media. Altogether, we live within an information environment that is more connected and more saturated than ever before in human history [@bak-coleman.etal2021]. If we are sufficiently critical consumers of media, can we benefit from this rich access to information without being exploited by advertisers or misled by misinformation? Perhaps not. Numerous psychological findings indicate that mere exposure to ideas makes those ideas appear more true, a finding commonly referred to as the “illusory truth” effect [@dekeersmaecker.etal2020; @dechene.etal2010; @fazio.etal2015; @hasher.etal1977; @pennycook.etal2018]. This effect suggests that we cannot exist in an environment of mis- and disinformation without being affected by it---without exposure to these ideas distorting our sense of what is true. 
+
+Studies examining the illusory truth effect typically proceed in at least two phases. At exposure, participants are introduced to a set of false statements. Typically, the statements are part of a true/false quiz, or a cover story explains they are part of some other innocuous judgment task. Then, after some intervening time ranging from minutes to weeks, participants are asked to judge whether these statements are true. On average, participants rate the statements as more “true” when they have been exposed to them previously---an illusory truth effect. 
+
+Decades of research have demonstrated the consistency and robustness of the illusory truth effect [e.g. see @dechene.etal2010]. The effect has been demonstrated for frivolous trivia questions [e.g. @hasher.etal1977; @lacassagne.etal2021; @unkelbach2007; @wang.etal2016] as well as consequential fake news headlines [@pennycook.etal2018]. The illusory truth effect has also been shown to be robust across people with different levels of cognitive ability, need for cognitive closure, and cognitive styles [@dekeersmaecker.etal2020].
+
+The effect is one of "illusory" truth because it occurs following "mere exposure" to statements. That is, it occurs when the statements are seen or heard in a non-communicative context, such as when they are read during a true/false quiz. Generally, being told something---even by a source of unknown trustworthiness---is prima facie reason for believing it [@grice1989]. But reading a statement on a true/false quiz is not reason for believing it; the statement is just as likely to be false as to be true.
+
+Why should mere exposure affect later ratings of truth? Predominant theoretical accounts attribute illusory truth effects to metacognitive experiences of fluency or familiarity [@dechene.etal2010]. Research on metacognition has shown that people's behavior and judgments are not only influenced by the content of their thoughts, but also by the phenomenological experience of processing those thoughts [For a review, see @schwarz2015].
+
+Metacognitive processing "fluency" is the experienced ease of processing or thinking about information [@alter.oppenheimer2009; @wanke.hansen2015]. When thinking is easy and fluent, people tend to judge the targets of that thinking more favorably than if thinking is challenging and disfluent [@wanke.etal1997]. A number of findings have shown that processing fluency contributes to the illusory truth effect: Mere prior exposure to statements makes later processing of those statements more fluent, and this metacognitive experience of fluency leads people to rate those statements as more true [@difonzo.etal2016; @fazio.etal2015; @unkelbach2007; @wang.etal2016].
+    
+Other researchers have attributed the illusory truth effect to familiarity [e.g. @arkes.etal1991; @mitchell.etal2006]. Prior exposure to statements engenders a feeling of familiarity upon re-exposure to those statements. This metacognitive feeling of familiarity provides a cue that leads people to infer the statement is more likely to be true.
+
+Both theoretical accounts provide a similar overall view of the illusory truth effect: Roughly, when asked whether something is true or false, people search their memory for knowledge pertaining to belief in the statement, but they also rely on their metacognitive experiences of familiarity and fluency. Familiarity and fluency are both signs that we have “heard this somewhere before.” According to foundational theories of communication, a general assumption that communicators strive to make true utterances is a prerequisite for successful communication and social functioning [@grice1989]. Thus, if having “heard something before” suggests that someone said it, then ecologically this is a reasonable cue to truth. Psychological studies that elicit the illusory truth effect hijack these metacognitive heuristics: They provide this sense of familiarity or fluency, but from a communicative context that lacks any reasonable assumption of truth.
+
+There is something unsettling about the illusory truth effect and the lack of agency it implies over our own beliefs. Even more worrisome, there could be dire societal implications if merely being exposed to an idea causes people to adopt it as a belief: Pennycook and colleagues [-@pennycook.etal2018] argue that the illusory truth effect, combined with an environment of pervasive misinformation, has important implications for the functioning of democratic society. The illusory truth effect suggests that mere exposure to misinformation could have impacts that cannot be stopped by fact-checking labels [@pennycook.etal2018], nor effectively curbed by retractions or corrective information [c.f. @ecker.etal2011; @lewandowsky.etal2012]. 
+
+However, there are more to _beliefs_ than ratings of truth. Though a person’s assent to a proposition (whether they agree with or judge it to be truthful) is an important marker and convenient measure of belief, other features of belief are just as essential. For one, beliefs imply other beliefs: for instance, believing that “it is sunny out” implies the belief that “it is daytime”. And believing misinformation, such as “Dominion voting machines were rigged in the 2020 election” might imply the belief that “Donald Trump actually won the 2020 election.” Beliefs also inform action and decision-making, and whether or not someone holds a belief can be judged (at least partly) from their decisions. When truly believed, misinformation can have serious consequences. For instance, a recent study found that people who marked just one piece of vaccine misinformation as accurate were nearly twice as likely to be unvaccinated against COVID-19 compared to those who did not endorse any vaccine misinformation [@ognyanova.etal2021]. 
+
+Generally, it is these wider consequences of belief (beyond truth ratings for a specific proposition) that should be most concerning. If illusory truth effects operate only through metacognitive influences, then these effects may not have much impact outside the lab.  Under these theoretical accounts, the impact of prior exposure depends on a subsequent re-exposure to a now fluent or familiar statement. This would make the real-world consequences of the illusory truth effect far narrower than one might fear: These metacognitive mechanisms are liable to apply only in response to the exact statements previously seen, but are not as likely to generalize to other related ideas, or to drive actions or decision-making in novel contexts. 
+
+Nevertheless, concerns about how the influence of mere exposure might operate in contexts of pervasive misinformation [@difonzo.etal2016; @pennycook.etal2018] loom large enough to warrant further consideration. Could mere exposure to statements truly change beliefs?
+
+A crucial feature of belief is that beliefs are connected with other related beliefs. Thus, one way to test whether mere exposure affects beliefs is to examine whether mere exposure to statements can affect truth ratings for other related statements. 
+
+A handful of studies are suggestive in this regard: Arkes and collagues [-@arkes.etal1991] found that mere exposure to one set of statements also affected judgments about novel related statements on the same topic (China). However, these findings could also be explained by a sense of familiary engendered by the shared topic of old and new statements [@arkes.etal1991]. 
+
+Bacon [-@bacon1979] found that mere exposure to one statement ($P$) could lead to lower truth ratings for a new, contradictory statements($\neg P$). For instance, mere exposure to "crocodiles sleep with their eyes open" produced lower truth ratings for "crocodiles sleep with their eyes closed". It seems clear at least that familiarity cannot explain this pattern of results. However, other findings under very similar paradigms have partly contradicted these results [@garcia-marques.etal2015] and it is somewhat unclear whether fluency could account for these findings, i.e. whether contradictory statements can be expected to lead to fluent or disfluent processing.
+
+Here, we sought to decisively examine whether mere exposure to statements could influence people's beliefs. To do so, we examined whether people draw inferences from statements after exposure in a context without any presupposition of truth. We designed a study to examine whether mere exposure to one statement (the “premise”) could affect truth ratings for a  different statement the premise would logically entail (the “implication”). Such an “illusory implication” effect would indicate that mere exposure has genuine impacts on beliefs extending beyond those attributable to metacognitive cues.
+
+# Experiment 1
+
+## Methods
+
+### Participants
+
+A total of 400 Participants were recruited through CloudResearch. Basic attention check questions were used to screen inattentive participants. These questions asked participants to simply give a particular response. Participants who failed any attention checks or who indicated during debrief that they had searched online for question answers were excluded from analysis. This left a final sample of `r nrow(df_demo)` (`r exp1_n_f` female, median age `r exp1_age` years-old).
+
+```{r fig1, fig.env="figure", fig.pos = "h", fig.align = "center", fig.cap="Average truth ratings for Implication statements in Experiment 1, broken down by exposure (exposed vs. unexposed), instructions (fact vs quiz conditions), implication type (true-implied-false vs false-implied-true). For visualization purposes, means were calcaulated by translating ordinal responses onto a scale from -2.5 to 2.5. Error bars indicate standard errors. "}
+fig1 <- df %>% 
+  filter(phase=="test") %>% 
+  filter(item_type == "B") %>% 
+  group_by(exposed, exposure_cond, B_implied_true) %>% 
+  summarize(
+    M = mean(resp_num),
+    se = sd(resp_num)/sqrt(n()),
+    ll = M - se,
+    ul = M + se
+  ) %>% 
+  mutate(
+    exposure_cond = if_else(exposure_cond=="fact", "Fact condition", "Quiz condition"),
+    exposed = if_else(exposed==1, "Exposed", "Unexposed"),
+    B_implied_true = as.character(B_implied_true)
+    ) %>% 
+  ggplot(
+    aes(x=B_implied_true, color=factor(exposed), shape=factor(exposed), y = M, ymin = ll, ymax=ul)
+  ) +
+  geom_pointrange(position=position_dodge(width=.5)) +
+  # coord_flip() +
+  scale_color_manual(values = c("#da1e28", "#0f62fe")) +
+  labs(y = "Truth rating", x = "Implication type", color="Exposure", shape="Exposure") +
+  facet_wrap(~exposure_cond) +
+  theme_bw(base_size=9.5) +
+  theme(panel.grid=element_blank(), legend.position="bottom") +
+  theme(axis.text.x = element_text(angle = 10, vjust = 0.5, hjust=.5))
+
+fig1
+```
+
+### Materials
+
+We created 24 pairs of statements presenting claims about history. Each pair consisted of a "premise" statement and a "implied" statement. Each “premise” statement was a falsehood that implied either the truth or falsity of the “implied” statement. Of the pairs, 12 had premise statements implying that a true statement was false (true-implied-false) and the other 12 had premise statements implying another false statement was true (false-implied-true). For instance, one "true-implied-false" pair was the premise statement, “No U.S. astronauts have died since the Challenger explosion in 1986” paired with the implied statement, “The space shuttle Columbia disintegrated over Texas in 2003” (true, but implied to be false by the "premise"). An example of a "false-implied-true" pair was the premise statement, "The Tour de France has been held every year since its inception in 1903" paired with the implied statement, "The Tour de France was still held during WWI and WWII" (false, but implied true by the "premise").
+
+### Procedures
+
+The study proceeded in three phases: 1) an exposure phase, 2) a distraction phase, and 3) a final testing phase. 
+
+At the beginning of the study, participants were randomly assigned to either the “fact” (_n_ = 100) or “quiz” (_n_ = 300) exposure condition and to one of three counterbalancing conditions. At the exposure phase, participants were presented with a subset of the "premise" statements (8 of the 24 total, counterbalanaced across participants) as well a set of control statements (12 true, 4 false). Participants assigned to the quiz and fact conditions received different instructions and performed different tasks in the exposure phase. 
+
+Participants in the fact condition were told the study’s main purpose was to learn more about how people learn and apply new knowledge. They were informed that the initial set of statements they would see were all facts, and were asked to rate how surprising each “fact” was to them. The true purpose of this condition was to test whether participants would successfully draw inferences from the "premise" to the "implied" statements when told that the premises were true.
+
+Participants in the quiz condition were told that they were to be given a true/false quiz, so that some of the statements would be true and some false. These participants rated how confident they were that each of the presented statements were true or false. The purpose of the quiz condition was to provide "mere exposure" to these statements, to test for illusory truth and illusory implication effects. 
+
+After their initial exposure to the statements, participants provided basic demographic information and were then presented with the expanded 7 question version of the Cognitive Reflection Task [CRT, @frederick2005; @toplak.etal2014]. These tasks served to provide a period of distraction between exposure and test.
+
+Finally, the testing phase for all participants consisted of a true-or-false quiz, where participants were asked to rate their confidence that each statement was true or false. These ratings were made on a 6-point scale from "Definitely False" to "Definitely True". The items tested included both "premise" and "implied" statements from the 24 item-pairs. Participants were quizzed on the 8 previously-exposed premise statements, as well as their corresponding "implied" statements. For comparison, they were also quizzed on 8 new premise statements and 8 unrelated implied statements. Participants were randomly assigned into three counterbalancing conditions that varied which of the statement-pairs were assigned to each exposure/test combination.
+
+We tested for the illusory truth effect by comparing truth ratings for premise statements seen during exposure to those that had not been seen. Similarly, we tested for the illusory implication effect by comparing truth ratings for implication statements whose corresponding premise statements were and were not presented during the exposure phase. If mere exposure to "premise" statements affects participants' judgments of the "implied" statements, this would be evidence for an illusory implication effect.
+
+At the end of the study, participants were debriefed and presented with a list of the false statements they had seen. 
+
+## Results
+
+Participants made their truth ratings in the test phase on a 6-point scale from “Definitely false” to “Definitely true”. To properly treat these Likert-style responses, the truth ratings were analyzed using multilevel Bayesian cumulative ordinal regression models [@burkner.vuorre2019] with random intercepts and slopes for participants and items. Cumulative ordinal regression models assume that participants’ discrete responses are driven by a continuous latent variable and a set of $k-1$ thresholds determining the range of the continuous variable corresponding to each of the ordinal response options. This model helps to account for potential differences in scale usage as well as the bounded nature of the response scale.
+
+All models were fit using the `brms` R package [@burkner2017], with model posteriors estimated using the No-U-Turn Markov Chain Monte Carlo (MCMC) sampler implemented in Stan. Four MCMC chains were run for each model, with 2000 samples (1000 burn-in) drawn from each. Chains were assessed for convergence with $\hat{R}$ and the total estimated effective sample size was verified to be greater than 1000 for all parameters [@gelman.etal2014].
+
+### Fact condition
+
+First, we examined truth ratings for the premise and implications statements among participants who were told that the false statements were true at exposure (“fact” condition). As expected, exposure to the premise statements when presented as “facts” increased endorsement at test, $\beta =$ `r report_reg_coef(fit_premise_fact, "exposed")`. In addition, participants successfully drew inferences from these “facts”, resulting in decreased accuracy for the implication statements at test, $\beta =$ `r report_reg_coef(fit_imp_fact, "exposed")`.
+
+### Quiz condition
+
+Figure 1 shows participants’ average truth ratings for the implication statements in the quiz condition. Participants gave higher truth ratings following exposure for false statements implied to be true, and somewhat lower truth ratings following exposure for true statements implied to be false. 
+
+
+```{r, showtable1, echo=F, message=F}
+mytable1
+```
+
+
+```{r, showtable2, echo=F, message=F}
+mytable2
+```
+
+
+An increase in truth ratings for the false-implied-true statements could potentially be explained by increased familiarity. This would be consistent with findings from Arkes and colleagues [-@arkes.etal1991], who found evidence for illusory truth for novel statements that were on the same topic as previously-seen statements. However, familiarity cannot explain the decrease in truth ratings for the true-implied-false items, as familiarity should encourage uniformly higher, not lower, truth ratings.
+
+A regression model was used to tease apart the effects of familiarity and logical implication. The model includes a) a binary variable indicating the type of implication statement (true-implied-false or false-implied-true), b) a binary predictor for prior exposure to the related premise coded zero when the premise was not seen and 1 when it was seen (capturing potential effects of familiarity), c) and a variable capturing the effect of implications, coded 1 for implied truth, -1 for implied falsehood, and zero when the related premise statement was not seen at exposure. Thus the "implication" predictor accounts for the effect of exposure to the premise on truth judgments for the implied statements (either positive or negative), while the "familiarity" predictor accounts for any positive effect of familiarity. We also incorporated "maximal" random intercepts and slopes for all terms varying by subject and item [@barr.etal2013]. Expressed in the common “lme4” syntax [@bates.etal2015], the regression model was:
+
+\begin{align*}
+\text{response} \sim 
+ \text{item type} &+ \text{familiarity} + \text{implication} \\
+&+ (1 + \text{familiarity} + \text{implication}|\text{subject}) \\
+&+ (1 + \text{familiarity} + \text{implication}|\text{item})
+\end{align*}
+
+Table 1 presents a summary of the posterior distribution estimated for the population-level coefficients in this model. The results indicate that both familiarity and the implication of the premise statements affected participants’ truth ratings. The implication effect is credibly greater than zero.
+
+Somewhat surprisingly, the effects of exposure on participants’ truth ratings for the premise statements were very subtle. Our primary preregistered test compared participants’ truth ratings for the exposed premise statements at test against their ratings for another set of 8 unexposed premise statements. This analysis did not find any evidence of an illusory truth effect, with a posterior estimate for the exposure parameter that credibly included zero. However, a secondary preregistered analysis comparing participants’ initial truth judgments for the premise-statements to their later truth judgments for those same statements at test did find a credible increase in endorsements, $\beta =$ `r report_reg_coef(fit_premise_within, "phasetest")`.
+
+Although the "quiz" presentation used in Experiment 1 is traditionally seen as providing "mere exposure" to statements, asking participants to judge the truth of these items may have lead them to feel pressured to maintain consistency in their responses. Participants showed a general bias toward judging statements “true” during the exposure phase, responding with some variation of “true” for 71.8% of responses. Attempting to maintain consistency with these prior responses could have thus influenced their responses to the implication statements and thus the observed effect may be an artifact of the experimental context.
+
+# Experiment 2
+
+Experiment 2 was conducted to address the possibility that a pressure for internal consistency produced the effects on the implication-statement truth ratings observed in Experiment 1.
+
+
+```{r fig2, fig.env="figure", fig.pos = "t", fig.align = "center", fig.cap="Average truth ratings for Implication statements in Experiment 2, broken down by exposure (exposed vs. unexposed) and implication type (true-implied-false vs false-implied-true). For visualization purposes, means were calcaulated by translating ordinal responses onto a scale from -2.5 to 2.5. Error bars indicate standard errors."}
+
+fig2 <- df2 %>% 
+  filter(phase=="test") %>% 
+  mutate(resp_num = recode(response,
+                           `Definitely True` = 2.5,
+                           `Probably True` = 1.5,
+                           `Maybe True` = .5,
+                           `Maybe False` = -.5,
+                           `Probably False` = -1.5,
+                           `Definitely False` = -2.5)
+  ) %>% 
+  mutate(
+    B_implied_true = ifelse(item_pair %in% c("war", "whitehouse", "bezos", "jackson",
+                                          "indonesia", "eiffel", "newyork", "presidents",
+                                          "tour", "africa", "disney", "avengers"), "F implied T", "T implied F"),
+      acc_num = ifelse(B_implied_true == "F implied T", -1*resp_num, resp_num)
+  ) %>% 
+  filter(item_type == "B") %>% 
+  mutate(
+    exposed = if_else(exposed, "Exposed", "Unexposed")
+  ) %>% 
+  group_by(exposed, exposure_cond, B_implied_true) %>% 
+  summarize(
+    M = mean(resp_num),
+    se = sd(resp_num)/sqrt(n()),
+    ll = M - se,
+    ul = M + se
+  ) %>% 
+  ggplot(
+    aes(x=B_implied_true, color=factor(exposed), shape=factor(exposed), y = M, ymin = ll, ymax=ul)
+  ) +
+  geom_pointrange(position=position_dodge(width=.5)) +
+  scale_color_manual(values = c("#da1e28", "#0f62fe")) +
+  theme_bw(base_size=10) +
+  theme(legend.position="bottom", panel.grid=element_blank()) +
+  # coord_flip() +
+  labs(y = "Truth rating", x = "Implication type", color="Exposure", shape="Exposure")
+
+fig2
+```
+
+
+## Methods
+
+
+### Participants 
+
+A total of 300 participants were recruited from CloudResearch using procedures identical to Experiment 1. As before, participants who failed attention check questions or who indicated they had looked up answers were excluded from analyses, leaving a final sample of `r nrow(df2_demo)` (`r exp2_n_f` female, median age `r exp2_age` years-old).
+
+
+### Materials and procedures
+
+All items and procedures were identical to Experiment 1 except for three changes. 
+
+First, all participants were assigned to a new “interest” condition. At exposure, participants were told that they would see a set of statements, some true and some false, and they were instructed to rate how interesting each statement was. This change was made to avoid forcing participants to make a true/false judgment for the exposed premise-statements, which could have pushed them to try to make coherent or consistent responses to the related implication-statements. Importantly, as with a true/false quiz, the presentation of statements in this context should not warrant any inference as to the truth of those statements. 
+
+Secondly, to provide a longer period of distraction between exposure and test, the ordering of the items in the test phase was rearranged. Participants first judged the truth of 24 control items (12 true and 12 false) to extend the time between viewing the main test items. 
+
+Third, another change in test presentation order further prevented any consistency-pressure: Participants judged the truth of all of the implication statements before judging the premise statements.
+
+## Results
+
+Figure 2 shows participants’ average truth ratings for the implication statements with and without exposure to their corresponding premise statements in Experiment 2. The illusory implication effect was again observed. As shown in the figure, truth ratings were clearly affected by exposure: participants gave higher truth ratings following exposure for false statements implied to be true, and lower truth ratings following exposure for true statements implied to be false. Table 2 shows the posterior population-level estimates for an identical regression as was conducted for Experiment 1. Experiment 2 replicated the effects of Experiment 1 in a revised design that eliminated any consistency pressure or demands on participants. In fact, the magnitude of the effect for the implication statements was somewhat larger in Experiment 2 than in Experiment 1. 
+
+
+```{r fig3, fig.env="figure*", fig.pos = "!hbt", fig.align = "center", fig.width=6.5, fig.height=3, fig.cap="Average truth ratings for individual premise and implication statements in Experiment 2, broken down by exposure (exposed vs. unexposed) and implication type (true-implied-false vs false-implied-true). For visualization purposes, means were calcaulated by translating ordinal responses onto a scale from -2.5 to 2.5. Error bars indicate standard errors.", num.cols.cap=2}
+
+df2_plotting <- df2 %>% 
+  filter(phase=="test") %>% 
+  mutate(resp_num = recode(response,
+                           `Definitely True` = 2.5,
+                           `Probably True` = 1.5,
+                           `Maybe True` = .5,
+                           `Maybe False` = -.5,
+                           `Probably False` = -1.5,
+                           `Definitely False` = -2.5)
+  ) %>% 
+  mutate(
+    B_implied_true = ifelse(item_pair %in% c("war", "whitehouse", "bezos", "jackson",
+                                          "indonesia", "eiffel", "newyork", "presidents",
+                                          "tour", "africa", "disney", "avengers"), "F implied T", "T implied F")
+  ) %>% 
+  mutate(exposed = if_else(exposed, "Exposed", "Unexposed"))
+
+df2_extra <- df2_plotting %>% 
+  filter(phase=="test") %>% 
+  filter(item_type == "A") %>% 
+  group_by(exposed, exposure_cond, item_pair, B_implied_true) %>% 
+  summarize(
+    M = mean(resp_num),
+    # se = sd(resp_num)/sqrt(n()),
+    # ll = M - se,
+    # ul = M + se
+  ) %>% 
+  spread(exposed, M) %>% 
+  mutate(diff = abs(Exposed-Unexposed)) %>% 
+  select(-Exposed, -Unexposed)
+
+plt_A <- df2_plotting %>% 
+  filter(phase=="test") %>% 
+  filter(item_type == "A") %>% 
+  group_by(exposed, exposure_cond, item_pair, B_implied_true) %>% 
+  summarize(
+    M = mean(resp_num),
+    se = sd(resp_num)/sqrt(n()),
+    ll = M - se,
+    ul = M + se
+  ) %>% 
+  left_join(df2_extra) %>% 
+  ggplot(
+    aes(x=reorder(item_pair, diff), color=factor(exposed), shape=factor(exposed), y = M, ymin = ll, ymax=ul)
+  ) +
+  geom_pointrange(position=position_dodge(width=.5)) +
+  scale_color_manual(values = c("#da1e28", "#0f62fe")) +
+  coord_flip() +
+  labs(title = "Premise-statements", y = "Truth rating", x= "Item", color="Exposure", shape="Exposure") +
+  theme_bw(base_size=9) +
+  theme(legend.position="right", legend.direction="vertical",panel.grid=element_blank()) +
+  facet_wrap(~B_implied_true, scales="free", ncol=1)
+
+# plt_A
+
+plt_B <- df2_plotting %>%  
+  filter(phase=="test") %>% 
+  filter(item_type == "B") %>% 
+  group_by(exposed, exposure_cond, item_pair, B_implied_true) %>% 
+  summarize(
+    M = mean(resp_num),
+    se = sd(resp_num)/sqrt(n()),
+    ll = M - se,
+    ul = M + se
+  ) %>% 
+  left_join(df2_extra) %>% 
+  ggplot(
+    aes(x=reorder(item_pair, diff), color=factor(exposed), shape=factor(exposed),  y = M, ymin = ll, ymax=ul)
+  ) +
+  geom_pointrange(position=position_dodge(width=.5)) +
+  scale_color_manual(values = c("#da1e28", "#0f62fe")) +
+  coord_flip() +
+  labs(title = "Implication-statements", y = "Truth rating", x= "Item", color="Exposure", shape="Exposure") +
+  theme_bw(base_size=9) +
+  theme(legend.position="right", legend.direction="vertical", panel.grid=element_blank()) +
+  facet_wrap(~B_implied_true, scales="free", ncol=1)
+
+
+fig3 <- (plt_A + plt_B + guide_area()) + plot_layout(widths=c(4,4,1.5), heights=5, guides="collect")
+
+# fig3 # fix legend
+```
+
+In addition, participant’s truth ratings for the premise statements in Experiment 2 revealed the classic illusory truth effect: premise statements were rated as more true when participants had been exposed to them previously $\beta =$ `r report_reg_coef(fit_prem_exp2, "exposedTRUE")`. 
+
+The illusory implication effect for the implication statements was generally similar in magnitude to the illusory truth effect observed among the premise statements.
+
+# Experiment 3
+
+Finally, we sought to replicate these findings once again and to rule out the possibility that the illusory implication effect is a product of experimental idiosyncrasies, such as misapprehension of instructions or potential task demands. In Experiment 3, we ensured participants were attending carefully and understood the instructions through additional attention and comprehension checks. In addition, we evaluated the potential for unanticipated task demands by excluding from analysis any participants who had suspicions about the study or who guessed its true purpose.
+
+## Method
+
+### Participants
+
+We recruited 540 participants from CloudResearch's Connect service and excluded participants who failed attention or instruction comprehension checks, leaving a final sample of `r nrow(df3_demo)` (`r exp3_n_f` female, median age `r exp3_age` years-old). In a secondary set of pre-registered analyses, we also excluded participants who suspected that the study had an undisclosed purpose (`r exp3_susp_count`) and additionally those who guessed the true purpose of the study in an open-ended response (`r exp3_flagged_count`), leaving `r nrow(df3_demo) - exp3_susp_count - exp3_flagged_count` participants for these analyses.
+
+### Materials and procedures
+
+All item pairs were identical to Experiment 2. However, several changes were made to the study's procedures limit the potential that the illusory implication effect could be produced by idiosyncratic features of the experimental task.
+
+First, we sought to further ensure that participants would not mistake the exposure context for a communicative context, while also not inducing any consistency pressure at test. To this end, we created a new "believability" task for the exposure phase. Participants were instructed to carefully read two statements and select the one that they thought would be more believable to the average person. This task should provide a pragmatic context for mere exposure where it was explicitly and pragmatically clear that the statements could be either true or false, but without inducing the consistency pressure that might come with a true or false “quiz”. To further ensure this task provided mere exposure, participants were reminded that statements could be true or false each time they judged their believability and comprehension check questions were included before and after the exposure phase to ensure participants remembered this aspect of the task.
+
+To improve our ability to measure the implication effect, in Experiment 3 participants were exposed to 12 of the premise statements at exposure rather than eight. As a consequence, we did not examine illusory truth effects. The 24 premise statements were randomly sorted in to 12 comparison questions, and each participant saw 6 of these pairs at exposure, along with five control pairs. 
+
+Following the test phase, two new questions assessed the potential influence of task demands. Participants were asked if they ever suspected the study had an undisclosed purpose (yes/no), and then regardless of their answer asked to explained their suspicions in an open-ended response. Responses were coded to identify participants who guessed that the true purpose concerned how their responses to the test phase would be affected by the exposure phase or by seeing misinformation. These participants were excluded from certain analyses following our pre-registered analysis plan.
+
+Finally, six attention check questions were more tightly integrated into the task to better ensure attendant responding. Following the "infrequency-items" approach of [@zorowitz.etal2023], exposure phase attention checks consisted of a very well-known fact and one wholly unbelievable fiction. Test phase attention checks consisted of very easy trivia items that all participants should know. Participants who answered any of the six attention checks incorrectly were excluded from analyses. 
+
+## Results
+
+```{r fig-exp3, fig.align='center', fig.cap="Average truth ratings for Implication statements in Experiment 3, broken down by exposure (exposed vs. unexposed) and implication type (true-implied-false vs false-implied-true). For visualization purposes, means were calcaulated by translating ordinal responses onto a scale from -2.5 to 2.5. Error bars indicate standard errors."}
+
+df3 %>% 
+  filter(phase=="test") %>% 
+  filter(item_type == "B") %>% 
+  mutate(
+    exposed = if_else(exposed, "Exposed", "Unexposed")
+  ) %>% 
+  group_by(exposed, B_implied_true) %>% 
+  summarize(
+    M = mean(resp_num),
+    se = sd(resp_num)/sqrt(n()),
+    ll = M - se,
+    ul = M + se
+  ) %>% 
+  ggplot(
+    aes(x=B_implied_true, color=factor(exposed), shape=factor(exposed), y = M, ymin = ll, ymax=ul)
+  ) +
+  geom_pointrange(position=position_dodge(width=.5))  +
+  scale_color_manual(values = c("#da1e28", "#0f62fe")) +
+  theme_bw(base_size=10) +
+  theme(legend.position="bottom", panel.grid=element_blank()) +
+  # coord_flip() +
+  labs(y = "Truth rating", x = "Implication type", color="Exposure", shape="Exposure")
+```
+
+### Preregistered analyses
+
+First, in accordance with our preregistered analysis plan, we replicate the primary "maximal" random-effects regression analysis of Experiments 1 and 2. Table 3 presents the results of this regression. The illusory implication effect was replicated, with a magnitude of the implication coefficient very similar to that observed in Experiment 1. 
+
+Next, to explore the possibility that these results might be influenced by task demands, we also carried out a parallel analysis excluding participants whose responses may have been impacted by their suspicions as to the true purpose of the study. We excluded both participants who explicitly stated they were suspicious when asked directly, and those who forced to guess in an open-ended response, guessed that the true purpose had to do with the first phase somehow affecting their responses in the second. Removing these participants did not substantially change the estimate of the implication effect (stats).
+
+```{r, showtable3, echo=F, message=F}
+mytable3
+```
+
+
+### Secondary and exploratory analyses
+
+In Experiments 1 and 2, the effect of familiarity was weaker than the measured implication effect, so that average truth ratings were higher after exposure for false-implied-true items and lower for true-implied-false items (Figures 1 and 2). In Experiment 3 however, the estimated effect of familiarity and implication were similar, and truth ratings were similar for exposed and unexposed true-implied-false items (Figure 3). This may suggest a possible alternate explanation of our findings: that the true-implied-false items' premise statements simply do not engender as much familiarity or fluency for their implication as do the false-implied-true items, so that the effects differ between these groups. Put another way, the identification of the "implication" effect coefficient rests on the assumption that familiarity and fluency effects are not accidentally confounded with item groups. 
+
+To assess the potential for confounding in the familiarity or fluency that exposure to the premise statements would likely engender for the implication statements, we examined the degree of surface-level overlap within each item pair. We compared the proportion of shared words (after lemmatization) between premise and implications within each item pair. As shown in Figure 4, there is no evidence for confounding between surface-level similarity and item types (median overlap = .19 in false-implied-true items, .21 in true-implied-false items) that would suggest differential effects of fluency or familiarity across types.
+
+Taken in concert with findings from Experiments 1 and 2, where the effect of exposure differed in sign across the item groups, we interpret our regressions as identifying and estimating an implication effect.
+
+```{r, item-fluency-print-fig, fig.align = "center", fig.cap = "Word-level overlap between premise and implication statements (after lemmatization)."}
+item_fluency_fig
+```
+
+# Discussion 
+
+We observed an “illusory implication” effect across three preregistered experiments: mere exposure to premises (e.g. that “The Tour de France has been held every year since its inception in 1903”) influenced participant’s truth ratings for examples of their logical implications (e.g. that “The Tour de France was still held during World War I and World War II”). Unlike the illusory truth effect, this novel effect cannot be easily explained by the effects of familiarity or fluency on the judgment process [cf. @arkes.etal1991; @fazio.etal2015; @unkelbach2007; @wang.etal2016]: whereas these metacognitive cues would be expected to uniformly increase endorsements, participants’ truth ratings for implication statements were both increased and decreased according to the implications of the corresponding premises. Thus, it appears that mere exposure has a genuine effect on people’s beliefs beyond simply creating a sense of familiarity.
+
+What cognitive mechanism could explain these findings? One potential explanation is that mere exposure to the premise statements leads participants to at least partially adopt them as beliefs. Simply entertaining the idea may create such an impression despite awareness of its ambiguous truth-value [@gilbert.etal1990; @gilbert1991]. If so, this apparently occurs despite participant's awareness that the statements may be false, as ensured by constant reminders and comprehension checks in Experiment 3.
+
+Alternately, the illusory implication effect may reflect explicit memory and source misattribution during testing: Participants may have some explicit memory for the premise statements, but fail to properly attribute their source to the experimental context. Future research might explore how explicit memory for the premise statements correlates with the strength of the illusory implication effects.
+
+Whatever the cognitive mechanism behind the illusory implication effect we observed, these findings are further cause for concern about the spread and influence of misinformation. The spread of misinformation and fake news appears to outpace the spread of factual news [@vosoughi.etal2018] and creates massive challenges for online platforms seeking to remove, label, and correct misinformation [@sharma.etal2019]. These challenges may be further compounded by basic features of human cognition  that our studies have revealed: mere exposure to false statements can lead them to be _believed_.
+
+\newpage
+
+# References
+
+::: {#refs custom-style="Bibliography"}
+:::

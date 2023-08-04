@@ -1,0 +1,156 @@
+subj_id,Finished,age,gender,condition,susp_check1,susp_check2a,susp_check2b,strategy_check,cheat_check,susp_check
+1,TRUE,34,Male,3,No,NA,How we react to trivia. and how much we believe what we read.,Just that I tried to guage if I thought they were true or not.,No,Yes
+2,TRUE,29,Male,1,No,NA,I guess the study was testing my knowledge on US history.,No strategies were used. I just went with my gut.,No,No
+3,TRUE,44,Male,2,No,NA,Perhaps to see how misinformation might alter one's perceptions...?,I had no real strategy. I just went with my gut.,No,Yes
+4,TRUE,38,Male,3,No,NA,If you trust your instincts/memory on topics related to past history?,No only my memory was used to answer these.,No,No
+5,TRUE,50,Male,3,No,NA,I don't know what the specific research question being tested is in this study.,No I didn't use any strategies whatsoever.,No,Yes
+6,TRUE,20,Male,3,No,NA,"Probably something about fake news I am guessing, as that is always being discussed these days. I don't really know though as there was nothing overtly political in there. I really don't know to be honest.","No, not really, I just relied on my knowledge. I did not google anything.",No,Yes
+7,TRUE,33,Female,1,No,NA,peoples general knowledge about their country and if they think something is true just by reading it,"same thing, if people believed false information just by reading it",No,Yes
+8,TRUE,54,Male,2,No,NA,to see if we would cheat and look up answers to the questions?  really have no idea,"no, i just went with what i believed",No,Yes
+9,TRUE,45,Prefer not to say,1,No,NA,I was being tested about my knowledge on historical topics.,I just relied on some things that I knew for certain and things that I have some knowledge of to answer the questions.,No,Yes
+10,TRUE,40,Male,3,No,NA,To see if you were confident in your answers and to see what statements were actually true.,I did not use any specific strategy.,No,Yes
+11,TRUE,33,Male,3,No,NA,This tested my education level for questions that we learned in elementary school.,i did not use any strategies. I just went for yes vs no.,No,No
+12,TRUE,31,Male,1,No,NA,How people determine what are facts from what might be fiction.,"I used my knowledge of history and tried to remember some of the questions from the first phase of the study. I also tried to just think about what made sense in terms of timing and geography. Other than that, I did not use any other approaches.",No,Yes
+13,TRUE,36,Male,1,No,NA,Perception of blatantly false trivia and how I would react to being presented with it?,The strategy was simply to judge the likelihood based on my own pre-existing knowledge of the topics,No,Yes
+14,TRUE,30,Female,2,No,NA,if I know if facts are true or false and if I have heard of these facts before,I based my answers on my knowledge of each fact,No,No
+15,TRUE,42,Male,3,No,NA,I'm not sure what it would be. Perhaps general knowledge based on assumptions.,I just used my general knowledge to answer them.,No,Yes
+16,TRUE,31,Female,3,No,NA,if people think bullshit was true. If they would believe the lies they are told by people in power.,I took what I knew and then thought about the ones that could have been true.,No,Yes
+17,TRUE,29,Male,2,No,NA,I guess to see if presenting them as fact had any influence on whether or not it was true.,"No strategies. Just answered the few that I knew for sure, and the rest were just guesses.",No,Yes
+18,TRUE,29,Female,3,No,NA,If using the first presented facts related to the second batch of presented facts.,I tried to recall from my own knowledge not necessarily from the first section.,No,Yes
+19,TRUE,64,Female,2,No,NA,"I'm not sure but some of those ""facts"" were wrong.",I just used my general knowledge from school and history.,No,Yes
+20,TRUE,29,Male,2,No,NA,How assuming certain facts to be true would effect ones ability to decide on other things being seemingly true or false.,I didn't use an particular strategy. I simply attempted to give my opinion on whether things seemed believable or not.,No,Yes
+21,TRUE,49,Female,3,No,NA,"If I had to guess, maybe taking in false information as true when its told. Or doubting your original answer if it clashes. Seeing what a person would think is true if told.",I didn't use any strategies. I just assumed some made more sense than others.,No,Yes
+22,TRUE,43,Male,1,No,NA,I have no idea what specifically was being researched.,I just went with what I thought to be true.,No,Yes
+23,TRUE,46,Female,2,No,NA,you were testing to see how surprised i was by the statements and compared to see if i thought they were true or not.,"no, not really, i just used my head knowledge.",No,No
+24,TRUE,55,Male,2,No,NA,"General knowledge, especially of history. And I don't remember most of this stuff.",I just made my best guesses for most of it. I really don't remember much of this from history classes.,No,Yes
+25,TRUE,36,Male,2,No,NA,"I don't know what you're testing, so it would not be prudent to guess.","No, I guessed at the ones that I didn't know.",No,Yes
+26,TRUE,21,Male,1,No,NA,If displaying false information can make people rethink their knowledge and confidence in their knowledge,"Just whether or not I believed them to be true, I had no real strategy",No,Yes
+27,TRUE,55,Male,2,Yes,"I knew some of the ""facts"" initially presented were false",NA,My own knowledge/memory was the most reliable as inaccurate information was presented as fact earlier in study,No,Yes
+28,TRUE,43,Male,2,No,NA,collecting my opinion about facts and also answering reasoning questions,i read every question and answered them,No,No
+29,TRUE,44,Female,3,No,NA,I am being tested on my personal beliefs in different statements,It tested how confident I feel about each statement.,No,Yes
+30,TRUE,44,Male,1,No,NA,How susceptible we are to thinking something is true because we had read it previously.,I was watching for inconsistencies such as the name of MLK's assassin and things that didn't make sense such as every president living in the White House.,No,Yes
+31,TRUE,42,Male,3,No,NA,"How much do we believe in so-called facts that we are presented as such, when it refutes the knowledge we already have","I used my own knowledge; for things I didn't know, some things that were posed were so preposterous that I could easily categorize them as fact. If it don't know, I used whatever I did know to make a choice.",No,Yes
+32,TRUE,57,Female,2,No,NA,I don't know. I'm sure its not as transparent as testing trivia skills.,I answered how I thought was correct. No real strategy.,No,Yes
+33,TRUE,35,Male,2,No,NA,I have no idea. memory? knowledge?.. Why not just tell me,"no, The approach i took was to follow the instructions.",No,No
+34,TRUE,49,Male,1,No,NA,If my beliefs about the stated facts would change throughout the study when introduced to alternative information,"no, I just answered the questions to the best of my ability and memory",No,Yes
+35,TRUE,56,Female,1,No,NA,How much history a person knows because it is not being taught in schools anymore.,I just relied on my memory of what I remember and what I was taught in school.,No,Yes
+36,TRUE,38,Female,3,No,NA,I am not sure. It just felt like an exam I took in school and made me nervous.,I answered the ones I knew for sure and the ones I did not I just guessed.,No,Yes
+37,TRUE,42,Male,3,No,NA,To see how dumb the average American is? I'm not sure.,Just what I knew or heard before. No other strategies were used.,No,Yes
+38,TRUE,49,Female,2,Yes,"Academic reserach study Research/ Academic Allowance: Allowance granted for the purpose of encouraging academic and research related training, education or professional duties is termed as academic or research allowance.",NA,Then two word of thegiven is a poettely in aboutting adopt the thinking,Yes,Yes
+39,TRUE,35,Female,3,No,NA,I really have no idea what the study is about. I really have no idea what the study is about.,I just assessed the questions and selected an answer based on prior knowledge.,No,Yes
+40,TRUE,34,Female,3,No,NA,judgement of events whether or not they were true or false,I felt I used what I thought I knew was true.,No,No
+41,TRUE,49,Female,3,No,NA,to assess how people interpret history facts and how well do people actually know about history,"No, I mainly just relied on my gut and tried to remember what I learned in school",No,Yes
+42,TRUE,39,Male,1,No,NA,If I could tell something was fake. Other than that I have no idea.,I guessed if I didn't know what the answer was.,No,Yes
+43,TRUE,29,Male,3,No,NA,Discernment over which facts learned were false. Some of the facts presented were ridiculous and obviously fake,I used what I thought was right and didn't use much of what I was told because I couldn't know for sure,No,Yes
+44,TRUE,54,Female,2,No,NA,I really don't know because I was focusing on trying to answer the questions.,"No, I just thought about what I had read or lived through",No,Yes
+45,TRUE,35,Female,3,No,NA,How people use new information to tell if other information is true or false.,"No, I just relied on information I already had.",No,Yes
+46,TRUE,58,Male,2,Yes,"Testing misinformation believability, such as how misinformation is spread on social media.",NA,I used my general knowledge and whether the claims sounded right.,No,Yes
+47,TRUE,36,Male,1,No,NA,I actually don't know but I'm guessing that it is to test peoples' knowledge of American history.,"No strategy, I went based off of what I knew.",No,Yes
+48,TRUE,38,Female,1,No,NA,Maybe reasoning was being tested in this study,"Give the benefit of the doubt, unless know to be otherwise",Yes,Yes
+49,TRUE,31,Male,1,No,NA,I believe this study was testing how closely you were paying attention as well as your knowledge of US history.,"Honestly, I didnt know some of them but I found it helpful to be able to answer "" maybe true"" or "" maybe false"", since I wasnt sure. Any educated guesses I looked at the fact and picked out anything I knew could have been true or false.",No,Yes
+50,TRUE,32,Male,2,No,NA,about people mental thinking task and research related study,i will give my best answers not for any strategies.,Yes,No
+51,TRUE,30,Female,1,Yes,read the questions and the true are false the statement,NA,i am using the mind and solving the quiz,No,No
+52,TRUE,28,Male,2,No,NA,"our general knowledge was being tested. Our level of surprise at new information was also tested.
+","I did not use any specific strategy I just tried to do my best according to my knowledge
+",No,Yes
+53,TRUE,55,Female,1,No,NA,I did not have any guess about what specific other questions were being tested in the study.,I did not use any strategies other than going on rough memory.,No,Yes
+54,TRUE,44,Female,3,No,NA,"I have no idea, that was so many questions I can't even remember what else the study asked me.","no, I just went with what I remembered or believed to be true.",No,Yes
+55,TRUE,25,Female,3,No,NA,idk I have no clue and nothing to write so stop making me write more lol,I just used whatever information that I had stored in my head from years of useless information about history taught to me in school every year,No,No
+56,TRUE,35,Female,2,No,NA,I have no idea.  I guess seeing how being given facts would effect how people answer trivia.,I just used my best judgement.  I did not have any special strategy I just tried to remember.,No,Yes
+57,TRUE,43,Female,1,No,NA,If our views change based on more questions asked. I felt like I was less sure of my answers the further the study moved.,I based my answers on my crappy education from 25+ years ago! My memory retention is getting worse as I age.,No,Yes
+58,TRUE,29,Female,3,Yes,It was good to evaluate this information. Because It might be quite hard to enhance that.,NA,It might be quite good to evaluate that.,Yes,Yes
+59,TRUE,60,Male,1,No,NA,Academic research study.This survey aims to learn about how people form and revise their beliefs about different topics.,NO.I Am useing my knowledge.very intelligent questions.,No,No
+60,TRUE,49,Prefer not to say,1,Yes,Figure out if people believe that clearly false information is true because it is being presented as a fact online.,NA,"When I was not sure, I used the maybe or probably options. Things that I remember from history as true or false were marked definitely true or false.",No,Yes
+61,TRUE,54,Male,2,No,NA,Actual knowledge and things we should know coming out of the U.S. educational system.,"I did try to remember what had been asked before. While I""m sure I got some ""definites"" wrong, I tried to only do that when I thought I was 100% sure. So, no formal strategy, but may more of an approach.",No,Yes
+62,TRUE,36,Male,1,No,NA,If changing a detail of a certain type of question influenced how other questions were remembered.,I didn't use any strategy. I just answered to the best of my ability.,No,Yes
+63,TRUE,50,Male,2,Yes,"How we felt the accuracy of each statement was. The ranger seemed to vary across the board
+",NA,I just tried to recall from memory of some of the questions asked. Some were easy to answer true or not true while others were just guesses.,No,Yes
+64,TRUE,61,Male,1,No,NA,Not sure.   I typically do not guess at such things because it could be about anything.,no.  I do not understand why I have to type at least 35 characters.,No,No
+65,TRUE,43,Male,1,No,NA,"Knowledge of history and attention to detail to trick questions, and reasoning.",no strategy.  Based on my knowledge and reasoning and best guess in some cases.,No,No
+66,TRUE,26,Male,1,No,NA,"If I would have to guess, I would assume that the study was testing whether someone's general knowledge could be changed with calling different things a fact when they were, in fact, not true in the slightest.","I was quite into history in my younger years, so a lot of the questions I just tried my best to remember different things, though I'm sure there were a few I got wrong as it has been quite some time. Though I was into history, I always disliked American History and found it boring, so it took a bit more time for me to really try and think whether something was true or false for some of the questions.",No,Yes
+67,TRUE,36,Non-binary,3,No,NA,I would guess it is testing the consistency of answers and if previous questions affect the current answers.,No I didn't use any special strategies.,No,No
+68,TRUE,29,Male,2,No,NA,No idea about it. I think general knowledge might be tested,The level of knowledge about United states of America,No,No
+69,TRUE,38,Female,2,No,NA,I really don't have a clue. Maybe general trivia knowledge.,I just tried to search my memory for knowledge I already had.,No,Yes
+70,TRUE,32,Male,3,No,NA,confidence in accuracy of different facts and memory,no specific strategy was used for the questions,No,No
+71,TRUE,42,Female,3,No,NA,Perhaps you were testing how much history I know. Other than that I have no other guesses what this was all about.,I just went with what I knew was right and wrong. A few I had to guess because I was not totally sure either way.,No,No
+72,TRUE,44,Female,1,Yes,To see if we believe what we've been told originally with distractions.,NA,"I tried to just remember the facts I didn't already know, besides the made up ones.",No,Yes
+73,TRUE,32,Male,2,No,NA,How surprising a fact was and confidence that it is either true or false.,I used no strategies other than an admittedly faulty memory.,No,Yes
+74,TRUE,29,Female,1,No,NA,I think it was seeing how people knowing it not knowing facts affects whether they're surprised about something or not.,I determined whether the questions used language that seemed absolute or not.  I was more likely to choose false if the language used words that made situations seem more permanent.,No,No
+75,TRUE,42,Female,2,No,NA,"not sure, maybe to test general knowledge, kind of like trivia.","no, I did not use any strategies in these questions",No,Yes
+76,TRUE,35,Male,1,No,NA,Some of the facts send to contradict each other. Maybe something to do with that.,No I just sent with what I thought was right from what I know about US history.,No,Yes
+77,TRUE,46,Male,1,No,NA,I have no idea. My brain hurts from all this and I just want to eat lunch.,I didn't have any strategy. I just went with what felt right or guessed.,Yes,Yes
+78,TRUE,38,Female,2,Yes,If changing the facts you saw changed how true you thought they were,NA,I tried to remember the first facts but I do't think I did that well,No,Yes
+79,TRUE,60,Female,1,No,NA,I have no idea sorry perhaps memory maybe hard to even guess,no I just either knew or did not or had a sense it seemed right,No,No
+80,TRUE,29,Female,2,No,NA,The test was about general knowledge and consumer opinion,it was about general knowledge about US states in us,No,No
+81,TRUE,35,Male,1,No,NA,How well people can reason thru some word problems,I just went based on my memory of the thing,No,Yes
+82,TRUE,57,Male,2,No,NA,Whether or not we were influenced to be more or less confident in an answer by seeing a wrong item presented as a fact earlier.,"No, I just made my best attaempt at an answer",No,Yes
+83,TRUE,29,Female,2,No,NA,"Perceptions of memory, trust and the ability to reason.",No particular strategies that I utilized. I simply went off whether or not the information seemed plausible.,No,Yes
+84,TRUE,28,Male,2,No,NA,I guess to see if I used the clearly wrong knowledge in the second part of the study.,"I just relied on memory, and for the rest tried to guess what I thought would be the best answer.",No,Yes
+85,TRUE,40,Female,3,Yes,This study aims to learn about how people form and revise their beliefs about different topics.,NA,YES.Studying a single subject for a long period of time and repeating phrases over and over to memorize them,No,No
+86,TRUE,35,Male,2,Yes,Memory related task. How I remember things well about america.,NA,I can easily answer most of the questions.,No,Yes
+87,TRUE,54,Female,1,No,NA,"Would we believe the false statements presented earlier, perhaps?  Would seeing them again make us believe they could be true.",I did not use strategy.  I just relied on my memory and my instinct as far as whether it seemed as if it was true (if I did not readily know the answer.),No,Yes
+88,TRUE,41,Male,2,No,NA,about mental testing and what was i know i did that.,i take a deep breath and answered it.,No,No
+89,TRUE,49,Male,1,No,NA,"If we equate ""surprising"" with ""false""? I actually don't know, sorry!",I just tried to use my own knowledge and then apply some common sense for the ones I didn't know.,No,Yes
+90,TRUE,40,Male,1,No,NA,"How much common knowledge does the average American possess and can they be trained to learn ""false"" facts by repitition.","I just answered each question as far as I factually knew, even though I admit I completely botched the Martin Luther King assassination question. On that question, I had a brain fart and didn't realize my horrendous mistake until after I had already moved on :(",No,Yes
+91,TRUE,24,Female,2,No,NA,I don't know what the research question is. I don't have a guess to give you.,"I just used what I remember from history class. I didn't use the ""facts"" from the first part, if that's what you want to know.",No,Yes
+92,TRUE,39,Male,3,Yes,purpose of the study is academic research study. There is different statement to give a opinion and true or false,NA,i follow the honest strategies and i follow the instruction.,Yes,Yes
+93,TRUE,54,Female,2,Yes,I think the purpose of the study was to see how well people know there history.,NA,I really did not have any strategies.  I just read the questions multiple times and tried to think or remember what I have learned.,Yes,Yes
+94,TRUE,37,Male,2,No,NA,I'm not entirely sure but i think it has to do with misinformation.,I just based it on my general knowledge,No,No
+95,TRUE,34,Male,3,No,NA,I really have no idea what you might have been testing. I was just answering trivia,I just went off of my own basic knowledge as best as I could,No,Yes
+96,TRUE,39,Female,3,No,NA,How knowledgeable I am about my country and about the worldwide facts.  Some facts were true and a few were false.,Answered best of my knowledge and previously read statements.,No,Yes
+97,TRUE,23,Female,1,No,NA,i am not sure of what is being tested in this survey,"No, I did not use any strategies, I was unaware of some of them and did not know if they were true or false",No,Yes
+98,TRUE,37,Female,3,No,NA,I think the study is basically about testing general knowledge,I tried to match the second phase of the study with the first and I made some necessary adjustments,No,No
+99,TRUE,40,Male,2,Yes,To test guessing ability.  I think most of the answers were true but some were thrown in to throw off people's instinct.,NA,I think I knew some of them.  I put definitely true on the ones I knew.  Some of them were just guesses.,No,Yes
+100,TRUE,28,Male,2,Yes,To view how much we think that wrong ideas can be proven true or false after having too much time thinking about them.,NA,I decided based on what knowledge I have already. There were many that I did not know but seemed accurate.,No,Yes
+101,TRUE,41,Female,1,No,NA,I have no idea. I couldn't even begin to guess. I genuinely have no clue.,"No, I just followed my gut and my intuition on them.",No,Yes
+102,TRUE,28,Male,2,No,NA,"How people remember certain information, especially false information that they've previously learned.",I did not use any particular strategies. I basically just used what I already knew.,No,Yes
+103,TRUE,43,Male,1,No,NA,Maybe guessing if a statement is true or false? That's just if I had to take a guess. Some of the statements didn't seem all the correct.,No I did not use anything other than general reasoning and memory of what I know of the history of the U.S.A.,No,Yes
+104,TRUE,43,Male,1,No,NA,I guess to see if we believed what were purported to be facts earlier and how those related to the 2nd set of questions.,Just used my knowledge and experience to answer as accurately as possible,No,Yes
+105,TRUE,29,Female,3,Yes,purpose of the study may be think that academic research study for making a good decision.,NA,There is lot strategies which i follow the true strategies there is honest move which i make in quiz.,No,No
+106,TRUE,40,Female,1,No,NA,"I'm really not sure, maybe seeing how different ways of presenting facts makes people think they are true or not.","Some things I already knew for sure to be true or false so those were easy. For all others, I just went with what felt the most plausible to me.",No,Yes
+107,TRUE,31,Female,3,No,NA,If I was more confident about facts I'd already seen earlier.,I just relied on my memory of things I'd studied in school or on my own.,No,Yes
+108,TRUE,51,Male,3,Yes,I think this study about some general knowledge and academic research study.,NA,I made my own decision and I give my best response.,No,Yes
+109,TRUE,69,Male,2,No,NA,The perception of degrees of surprise vs. the relative knowledge of facts.,"I based my answers on the degree that I knew or believed the answer to be true or false.  If I wasn't sure, I chose towards the middle.",No,Yes
+110,TRUE,41,Female,3,No,NA,to see if your bad facts made me think about things differently,I just went by what I know - or think I know,No,Yes
+111,TRUE,45,Male,1,No,NA,Evaluate how much people believe specific statements.,I tried to remember the facts presented in the first part.  I also considered how much the statements made sense.,No,No
+112,TRUE,32,Female,1,Yes,This is about academic research study. I felt very good. I felt very happy,NA,I did best of my knowledge. I did very clearly.,No,No
+113,TRUE,53,Male,1,No,NA,Degrees to which information is believable or unbelievable.,"No strategy, I just answered to the best of my knowledge.",No,Yes
+114,TRUE,56,Male,3,Yes,very accepted in this valuable points of team effect very accepted in this valuable points of team effect very accepted in this valuable points of team effect,NA,very accepted in this valuable points of team effect,Yes,Yes
+115,TRUE,30,Male,3,No,NA,I am not sure what the study could have been about.,I did not use any specific strategies. I only went with what I thought.,No,No
+116,TRUE,39,Male,2,No,NA,correlation between surprise upon hearing new information and how much a person believes it,I tried to rely on my knowledge of history as a basis and chose to pretty much believe anything I couldnt directly debunk,No,Yes
+117,TRUE,40,Male,2,No,NA,To see how people perceived various facts as true or false.,No strategies were used except using my memory.,No,Yes
+118,TRUE,32,Male,3,No,NA,"how learning things changes opinions, or how getting new information may change our minds",Just went with my gut reaction and counted on it to guide me,No,Yes
+119,TRUE,41,Female,2,Yes,Academic research study and research survey this is purpose of the study,NA,i did best of my knowledge and full attention,No,No
+120,TRUE,35,Female,2,Yes,"I have no idea, but I know it's not to test the general knowledge of the public.",NA,"No, I just guessed. I don't remember a lot about history.",No,Yes
+121,TRUE,39,Male,1,No,NA,how well people remember things as well as what people think is true,"no just went with what I thought was true or false, what I remember being true, etc",No,Yes
+122,TRUE,25,Female,2,No,NA,no idea as to what was tested by the research team.,No strategies was used by me during this phase.,No,No
+123,TRUE,53,Male,1,No,NA,"Not sure, I think it could be about the knowledge of black history",I mostly went with what I know and have either read or learned about,No,Yes
+124,TRUE,49,Male,3,Yes,"This survey is excellent. The Purpose of the Study illustrates what the study will do, which should reflect the statement of the problem. The purpose also discusses how you will conduct your study and the kinds of comparisons you will make",NA,In second phase of the study are asked some true or false quiz questions is excellent,No,Yes
+125,TRUE,33,Male,1,No,NA,Whether people knew facts about history and could remember them.,I tried to use my general knowledge to answer them.,No,No
+126,TRUE,35,Female,1,Yes,I think it intended on giving us false facts and testing on what we already knew and how we'd answer.,NA,I didn't use any tactics. I just tried my best to remember what I was told and to remember if I was given a false statement.,No,Yes
+127,TRUE,50,Female,3,No,NA,I wonder if people are more likely to think something is true in the second part if they had seen it in the first part.,I did not - I just went with my gut if I was not sure.,No,Yes
+128,TRUE,40,Male,2,Yes,The survey aims to learn about how people form and revise their beliefs about different topics.,NA,I made my own decision and use mathematical strategies in the quiz questions.,No,Yes
+129,TRUE,25,Female,1,No,NA,It is about testing our general knowledge and the reasoning skills,This will to test the more common knowledge.,No,No
+130,TRUE,26,Female,3,No,NA,People's general knowledge of politics and historical knowledge,"I relied on previous knowledge from prior education, some of which i did not know.",No,Yes
+131,TRUE,25,Male,1,No,NA,it was good and very intelligent for my working experience,it was good to work for myself asked some true/false quiz questions,Yes,No
+132,TRUE,33,Male,3,No,NA,"If I had to guess, I would say to see if people would be willing to believe facts that most people know aren't true if those facts are bundled with other true facts. For example, someone living to be 150 years old is clearly wrong, but would people maybe believe it more if it's bundled with facts that the know are true.",I didn't use any strategies to answer those questions other than relying on my own knowledge and intuition.,No,Yes
+133,TRUE,32,Female,3,No,NA,i am unsure of the  specific research being studied,I just based my answers off of prior knowledge or quessed,No,Yes
+134,TRUE,57,Male,3,No,NA,The purpose of the study fact recall and remember of the facts.,"Strategies are of no use, I only recall facts in my mind.",No,No
+135,TRUE,48,Male,1,No,NA,I couldn't venture a guess because I didn't think about it. I just answered the questions as honestly as I could. I have no other stake in your experiment.,I just answered as honestly as I could.,No,Yes
+136,TRUE,37,Male,2,No,NA,To see if we believe misinformation and how confident we are in our judgments.,"I did not use any particular strategies but rather tried to rely on my own knowledge. If I was not positive, I did not select ""Definitely"".",No,Yes
+137,TRUE,49,Female,2,No,NA,General trivia question knowledge and research study,This study give lot of information about general trivia questions,No,No
+138,TRUE,32,Male,3,No,NA,"Academic research mind In a qualitative study, inquirers state research questions, not objectives","NO, i am honestly in answer in the question",No,No
+139,TRUE,57,Female,3,No,NA,I am not sure what was being studied but how I would believe lies.,"no, I just went with my hunches and my gut.",No,No
+140,TRUE,31,Male,2,Yes,"I think you were judging if the facts presented at the start would influence my answers at the last part. Like if being presented with a ""fact"" would make me think it is true.",NA,I have seen some and figured the rest out.,No,Yes
+141,TRUE,32,Female,1,Yes,General knowledge and trivia question study for workers.,NA,Second phase of this study give lot of information about our nation.,No,No
+142,TRUE,44,Female,2,No,NA,I think the experiment is to determine how people make decisions.,I just tried to answer the questions to the best of my ability.,No,Yes
+143,TRUE,22,Female,1,No,NA,yes tested about us general knowledge at last past years what happen this study showing the authors and president andabout war more population,no i didn't use anything to answer i have only answer the true or false ii use my knowlege using the true or flase,No,Yes
+144,TRUE,24,Male,1,No,NA,How being exposed to statements affects believability.,"No strategies, just based on what I know and have learned.",No,Yes
+145,TRUE,49,Female,1,No,NA,If how surprising a fact seemed aided in its retention,I usually went with my initial reaction; there was no particular strategy.,No,Yes
+146,TRUE,42,Male,3,No,NA,How positive are people about historical facts when presented with true and false statements.,I just tried to use my knowledge of certain events and also to mix in common sense.,No,Yes
+147,TRUE,27,Male,1,No,NA,Gauging a person's ability to gauge facts and whether or not they perceive it to be false.,"No strategy in particular, just based off prior knowledge and educated guesses.",No,No
+148,TRUE,40,Female,3,Yes,The survey is very interesting in to the very knowledge improvement of the very told of the excluding.,NA,"The instructor needs to use a questioning strategy called probing to make students explore initial comments. Probes are useful in getting students more involved in critical analysis of their own and other students' ideas.
+",No,No
+149,TRUE,60,Male,2,Yes,I have no idea what the true purpose of this study is.,NA,As my memory of historical dates is sketchy I wasn't ever really sure about any date provided.,No,Yes
+150,TRUE,39,Female,1,No,NA,This study was testing how well I know my history.,No strategy was used in the second phase.,No,No
+151,TRUE,37,Male,3,No,NA,views on truth and bias through leading questions through trivia,"I did not use any strategies, I either knew it or did not",No,Yes
