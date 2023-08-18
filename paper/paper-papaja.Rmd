@@ -1,5 +1,5 @@
 ---
-title             : "Illusory Implications: Evidence that mere exposure to ideas can induce beliefs"
+title             : "Illusory Implications: Mere exposure to ideas can induce beliefs"
 shorttitle        : "Illusory implications"
 
 author: 
@@ -40,7 +40,7 @@ abstract: |
   <!-- https://tinyurl.com/ybremelq -->
   
 keywords          : "Illusory truth; Metacognition; Cognitive Psychology; Misinformation"
-wordcount         : "X"
+wordcount         : "4929"
 
 bibliography      : "references.bib"
 
