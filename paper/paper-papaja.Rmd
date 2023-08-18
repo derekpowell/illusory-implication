@@ -1,6 +1,6 @@
 ---
-title             : "The title"
-shorttitle        : "Title"
+title             : "Illusory Implications: Evidence that mere exposure to ideas can induce beliefs"
+shorttitle        : "Illusory implications"
 
 author: 
   - name          : "Justin Mikell"
@@ -961,7 +961,7 @@ df3 %>%
 
 First, in accordance with our preregistered analysis plan, we replicate the primary "maximal" random-effects regression analysis of Experiments 1 and 2. Table 3 presents the results of this regression. The illusory implication effect was replicated, with a magnitude of the implication coefficient very similar to that observed in Experiment 1. 
 
-Next, to explore the possibility that these results might be influenced by task demands, we also carried out a parallel analysis excluding participants whose responses may have been impacted by their suspicions as to the true purpose of the study. We excluded both participants who explicitly stated they were suspicious when asked directly, and those who forced to guess in an open-ended response, guessed that the true purpose had to do with the first phase somehow affecting their responses in the second. Removing these participants did not substantially change the estimate of the implication effect (stats).
+Next, to explore the possibility that these results might be influenced by task demands, we also carried out a parallel analysis excluding participants whose responses may have been impacted by their suspicions as to the true purpose of the study [@coles.frank2023]. We excluded both participants who explicitly stated they were suspicious when asked directly, and those who forced to guess in an open-ended response, guessed that the true purpose had to do with the first phase somehow affecting their responses in the second. Removing these participants did not substantially change the estimate of the implication effect, $\beta =$ `r report_reg_coef(fit_imp_maximal3, "implication")`.
 
 ```{r, showtable3, echo=F, message=F}
 mytable3
