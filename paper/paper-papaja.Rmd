@@ -40,7 +40,7 @@ abstract: |
   <!-- https://tinyurl.com/ybremelq -->
   
 keywords          : "Illusory truth; Metacognition; Cognitive Psychology; Misinformation"
-wordcount         : "4929"
+wordcount         : "4930"
 
 bibliography      : "references.bib"
 
@@ -652,7 +652,7 @@ Here, we sought to decisively examine whether mere exposure to statements could 
 
 A total of 400 Participants were recruited through CloudResearch. Basic attention check questions were used to screen inattentive participants. These questions asked participants to simply give a particular response. Participants who failed any attention checks or who indicated during debrief that they had searched online for question answers were excluded from analysis. This left a final sample of `r nrow(df_demo)` (`r exp1_n_f` female, median age `r exp1_age` years-old).
 
-```{r fig1, fig.env="figure", fig.pos = "h", fig.align = "center", fig.cap="Average truth ratings for Implication statements in Experiment 1, broken down by exposure (exposed vs. unexposed), instructions (fact vs quiz conditions), implication type (true-implied-false vs false-implied-true). For visualization purposes, means were calcaulated by translating ordinal responses onto a scale from -2.5 to 2.5. Error bars indicate standard errors. "}
+```{r fig1, fig.env="figure", fig.pos = "h", fig.align = "center", fig.cap="Average truth ratings for Implication statements in Experiment 1, broken down by exposure (exposed vs. unexposed), instructions (fact vs quiz conditions), implication type (false-implied-true vs true-implied-false). For visualization purposes, means were calculated by translating ordinal responses onto a scale from -2.5 to 2.5. Error bars indicate standard errors. "}
 fig1 <- df %>% 
   filter(phase=="test") %>% 
   filter(item_type == "B") %>% 
@@ -752,7 +752,7 @@ Although the "quiz" presentation used in Experiment 1 is traditionally seen as p
 Experiment 2 was conducted to address the possibility that a pressure for internal consistency produced the effects on the implication-statement truth ratings observed in Experiment 1.
 
 
-```{r fig2, fig.env="figure", fig.pos = "t", fig.align = "center", fig.cap="Average truth ratings for Implication statements in Experiment 2, broken down by exposure (exposed vs. unexposed) and implication type (true-implied-false vs false-implied-true). For visualization purposes, means were calcaulated by translating ordinal responses onto a scale from -2.5 to 2.5. Error bars indicate standard errors."}
+```{r fig2, fig.env="figure", fig.pos = "t", fig.align = "center", fig.cap="Average truth ratings for Implication statements in Experiment 2, broken down by exposure (exposed vs. unexposed) and implication type (false-implied-true vs true-implied-false). For visualization purposes, means were calculated by translating ordinal responses onto a scale from -2.5 to 2.5. Error bars indicate standard errors."}
 
 fig2 <- df2 %>% 
   filter(phase=="test") %>% 
@@ -818,7 +818,7 @@ Third, another change in test presentation order further prevented any consisten
 Figure 2 shows participants’ average truth ratings for the implication statements with and without exposure to their corresponding premise statements in Experiment 2. The illusory implication effect was again observed. As shown in the figure, truth ratings were clearly affected by exposure: participants gave higher truth ratings following exposure for false statements implied to be true, and lower truth ratings following exposure for true statements implied to be false. Table 2 shows the posterior population-level estimates for an identical regression as was conducted for Experiment 1. Experiment 2 replicated the effects of Experiment 1 in a revised design that eliminated any consistency pressure or demands on participants. In fact, the magnitude of the effect for the implication statements was somewhat larger in Experiment 2 than in Experiment 1. 
 
 
-```{r fig3, fig.env="figure*", fig.pos = "!hbt", fig.align = "center", fig.width=6.5, fig.height=3, fig.cap="Average truth ratings for individual premise and implication statements in Experiment 2, broken down by exposure (exposed vs. unexposed) and implication type (true-implied-false vs false-implied-true). For visualization purposes, means were calcaulated by translating ordinal responses onto a scale from -2.5 to 2.5. Error bars indicate standard errors.", num.cols.cap=2}
+```{r fig3, fig.env="figure*", fig.pos = "!hbt", fig.align = "center", fig.width=6.5, fig.height=3, fig.cap="Average truth ratings for individual premise and implication statements in Experiment 2, broken down by exposure (exposed vs. unexposed) and implication type (false-implied-true vs true-implied-false). For visualization purposes, means were calculated by translating ordinal responses onto a scale from -2.5 to 2.5. Error bars indicate standard errors.", num.cols.cap=2}
 
 df2_plotting <- df2 %>% 
   filter(phase=="test") %>% 
@@ -919,19 +919,19 @@ We recruited 540 participants from CloudResearch's Connect service and excluded 
 
 ### Materials and procedures
 
-All item pairs were identical to Experiment 2. However, several changes were made to the study's procedures limit the potential that the illusory implication effect could be produced by idiosyncratic features of the experimental task.
+All item pairs were identical to Experiment 2. However, several changes were made to the study's procedures to limit the potential that the illusory implication effect could be produced by idiosyncratic features of the experimental task.
 
 First, we sought to further ensure that participants would not mistake the exposure context for a communicative context, while also not inducing any consistency pressure at test. To this end, we created a new "believability" task for the exposure phase. Participants were instructed to carefully read two statements and select the one that they thought would be more believable to the average person. This task should provide a pragmatic context for mere exposure where it was explicitly and pragmatically clear that the statements could be either true or false, but without inducing the consistency pressure that might come with a true or false “quiz”. To further ensure this task provided mere exposure, participants were reminded that statements could be true or false each time they judged their believability and comprehension check questions were included before and after the exposure phase to ensure participants remembered this aspect of the task.
 
-To improve our ability to measure the implication effect, in Experiment 3 participants were exposed to 12 of the premise statements at exposure rather than eight. As a consequence, we did not examine illusory truth effects. The 24 premise statements were randomly sorted in to 12 comparison questions, and each participant saw 6 of these pairs at exposure, along with five control pairs. 
+To improve our ability to measure the implication effect, in Experiment 3 participants were exposed to 12 of the premise statements at exposure rather than eight. As a consequence, we did not examine illusory truth effects. The 24 premise statements were randomly sorted into 12 comparison questions, and each participant saw 6 of these pairs at exposure, along with five control pairs. 
 
-Following the test phase, two new questions assessed the potential influence of task demands. Participants were asked if they ever suspected the study had an undisclosed purpose (yes/no), and then regardless of their answer asked to explained their suspicions in an open-ended response. Responses were coded to identify participants who guessed that the true purpose concerned how their responses to the test phase would be affected by the exposure phase or by seeing misinformation. These participants were excluded from certain analyses following our pre-registered analysis plan.
+Following the test phase, two new questions assessed the potential influence of task demands. Participants were asked if they ever suspected the study had an undisclosed purpose (yes/no), and then regardless of their answer asked to explain their suspicions in an open-ended response. Responses were coded to identify participants who guessed that the true purpose concerned how their responses to the test phase would be affected by the exposure phase or by seeing misinformation. These participants were excluded from certain analyses following our pre-registered analysis plan.
 
 Finally, six attention check questions were more tightly integrated into the task to better ensure attendant responding. Following the "infrequency-items" approach of [@zorowitz.etal2023], exposure phase attention checks consisted of a very well-known fact and one wholly unbelievable fiction. Test phase attention checks consisted of very easy trivia items that all participants should know. Participants who answered any of the six attention checks incorrectly were excluded from analyses. 
 
 ## Results
 
-```{r fig-exp3, fig.align='center', fig.cap="Average truth ratings for Implication statements in Experiment 3, broken down by exposure (exposed vs. unexposed) and implication type (true-implied-false vs false-implied-true). For visualization purposes, means were calcaulated by translating ordinal responses onto a scale from -2.5 to 2.5. Error bars indicate standard errors."}
+```{r fig-exp3, fig.align='center', fig.cap="Average truth ratings for Implication statements in Experiment 3, broken down by exposure (exposed vs. unexposed) and implication type (false-implied-true vs true-implied-false). For visualization purposes, means were calculated by translating ordinal responses onto a scale from -2.5 to 2.5. Error bars indicate standard errors."}
 
 df3 %>% 
   filter(phase=="test") %>% 
@@ -946,6 +946,7 @@ df3 %>%
     ll = M - se,
     ul = M + se
   ) %>% 
+  mutate(B_implied_true = ordered(B_implied_true, levels = c("F implied T", "T implied F"))) %>% 
   ggplot(
     aes(x=B_implied_true, color=factor(exposed), shape=factor(exposed), y = M, ymin = ll, ymax=ul)
   ) +
@@ -961,7 +962,7 @@ df3 %>%
 
 First, in accordance with our preregistered analysis plan, we replicate the primary "maximal" random-effects regression analysis of Experiments 1 and 2. Table 3 presents the results of this regression. The illusory implication effect was replicated, with a magnitude of the implication coefficient very similar to that observed in Experiment 1. 
 
-Next, to explore the possibility that these results might be influenced by task demands, we also carried out a parallel analysis excluding participants whose responses may have been impacted by their suspicions as to the true purpose of the study [@coles.frank2023]. We excluded both participants who explicitly stated they were suspicious when asked directly, and those who forced to guess in an open-ended response, guessed that the true purpose had to do with the first phase somehow affecting their responses in the second. Removing these participants did not substantially change the estimate of the implication effect, $\beta =$ `r report_reg_coef(fit_imp_maximal3, "implication")`.
+Next, to explore the possibility that these results might be influenced by task demands, we also carried out a parallel analysis excluding participants whose responses may have been impacted by their suspicions as to the true purpose of the study [@coles.frank2023]. We excluded both participants who explicitly stated they were suspicious when asked directly, and those who, when forced to guess in an open-ended response, guessed that the true purpose had to do with the first phase somehow affecting their responses in the second. Removing these participants did not substantially change the estimate of the implication effect, $\beta =$ `r report_reg_coef(fit_imp_maximal3, "implication")`.
 
 ```{r, showtable3, echo=F, message=F}
 mytable3
