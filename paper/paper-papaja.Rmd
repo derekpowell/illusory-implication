@@ -1000,9 +1000,6 @@ Alternately, the illusory implication effect may reflect explicit memory and sou
 
 Whatever the cognitive mechanism behind the illusory implication effect we observed, these findings are further cause for concern about the spread and influence of misinformation. The spread of misinformation and fake news appears to outpace the spread of factual news [@vosoughi.etal2018] and creates massive challenges for online platforms seeking to remove, label, and correct misinformation [@sharma.etal2019]. These challenges may be further compounded by basic features of human cognition  that our studies have revealed: mere exposure to false statements can lead them to be _believed_.
 
-## Constraints on Generality
-
-The studies reported here targeted U.S. adults through an online survey provider (CloudResearch). Study materials were designed accordingly and may produce different results if tested on populations with different backgrounds and prior knowledge. 
 
 \newpage
 
