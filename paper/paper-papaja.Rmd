@@ -42,7 +42,7 @@ abstract: |
   <!-- https://tinyurl.com/ybremelq -->
   
 keywords          : "Illusory truth; Metacognition; Cognitive Psychology; Misinformation"
-wordcount         : "5636"
+wordcount         : "5659"
 
 bibliography      : "references.bib"
 
