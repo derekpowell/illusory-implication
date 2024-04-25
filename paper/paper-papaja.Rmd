@@ -456,7 +456,10 @@ statement_overlap <- statements %>%
   summarize(overlap = median(overlap_prop))
 
 item_fluency_fig <- statements %>%
-  mutate(B_implied_true = if_else(B_implied_true==1, "F implied T", "T implied F")) %>% 
+  mutate(
+    B_implied_true = if_else(B_implied_true==1, "F implied T", "T implied F"),
+    B_implied_true = if_else(B_implied_true == "T implied F", "Contradicted", "Entailed") 
+    ) %>% 
   ggplot(aes(x = factor(B_implied_true), y = overlap_prop)) +
   stat_summary(fun.data=mean_se, fun.args = list(mult=2), 
                  geom="pointrange", color="red", shape=3, position=position_dodge()) +
@@ -498,7 +501,9 @@ mytable1 <- make_table_df(fit_imp_quiz_int) %>%
   rename(`$CI_{2.5\\%}$` = `l-95% CI`,`$CI_{97.5\\%}$` = `u-95% CI`) %>%
   mutate(
     Term = case_when(
-      Term == "B_implied_trueFimpliedT" ~ "implication type",
+      Term == "B_implied_trueFimpliedT" ~ "Statement Truth",
+      Term == "familiarity" ~ "Exposure",
+      Term == "implication" ~ "Implication",
       # grepl("Intercept\\[", Term) ~ gsub("Intercept\\[(.*)\\]","$\\\\alpha_{\\1}$", Term),
       Term == "item_sd(Intercept)" ~ "$\\sigma_{item}$",
       Term == "subj_sd(Intercept)" ~ "$\\sigma_{subj}$",
@@ -511,9 +516,10 @@ mytable2 <- make_table_df(fit_imp_exp2) %>%
   rename(`$CI_{2.5\\%}$` = `l-95% CI`,`$CI_{97.5\\%}$` = `u-95% CI`) %>%
   mutate(
     Term = case_when(
-      Term == "B_implied_trueFimpliedT" ~ "implication type",
+      Term == "B_implied_trueFimpliedT" ~ "Statement Truth",
+      grepl("familiarity", Term) ~ "Exposure",
+      Term == "implication" ~ "Implication",
       # grepl("Intercept\\[", Term) ~ gsub("Intercept\\[(.*)\\]","$\\\\alpha_{\\1}$", Term),
-      grepl("familiarity", Term) ~ "familiarity",
       # Term == "item_sd(Intercept)" ~ "$\\sigma_{item}$",
       # Term == "subj_sd(Intercept)" ~ "$\\sigma_{subj}$",
       TRUE ~ Term
@@ -525,9 +531,11 @@ mytable3 <- make_table_df(fit_imp_maximal) %>%
   rename(`$CI_{2.5\\%}$` = `l-95% CI`,`$CI_{97.5\\%}$` = `u-95% CI`) %>%
   mutate(
     Term = case_when(
-      Term == "B_implied_trueFimpliedT" ~ "implication type",
+      Term == "B_implied_trueFimpliedT" ~ "Statement Truth",
+      Term == "familiarity" ~ "Exposure",
+      Term == "implication" ~ "Implication",
       # grepl("Intercept\\[", Term) ~ gsub("Intercept\\[(.*)\\]","$\\\\alpha_{\\1}$", Term),
-      grepl("familiarity", Term) ~ "familiarity",
+      grepl("familiarity", Term) ~ "Exposure",
       # Term == "item_sd(Intercept)" ~ "$\\sigma_{item}$",
       # Term == "subj_sd(Intercept)" ~ "$\\sigma_{subj}$",
       TRUE ~ Term
@@ -649,7 +657,7 @@ However, findings from Unkelbach and Rom [-@unkelbach.rom2017] cast doubt on a p
 
 Prior work tested the effect of mere exposure on implied statements using only direct contradictions of the original statement (or paraphrases of direct contradictions). Here, we sought to further test for an "illusory implication effect" by testing the effect of mere exposure to statements on their more distant logical implications. To do so, we designed a series of studies to examine whether mere exposure to one statement (the “premise”) could affect truth ratings for another statement this premise would logically entail to be either true or false (the “implication”). 
 
-We developed materials involving more distant inferences that do not afford direct one-to-one mappings between shared concepts in the premise and implication statements. For instance, one statement pair was the premise statement, “No U.S. astronauts have died since the Challenger explosion in 1986” paired with the implied statement, “The space shuttle Columbia disintegrated over Texas in 2003” (true, but implied to be false by the "premise"). In contrast with prior materials using "contradictory" statements, there is no direct one-to-one mapping of concepts between the two statements. Instead, a chain of inferences must developed for a conclusion to be drawn: that the space shuttle Columbia contained astronauts, that its disintegration would have killed them, and that 2003 is later than 1986. 
+We developed materials involving more distant inferences that do not afford direct one-to-one mappings between shared concepts in the premise and implication statements. Thus, any reduction in truth ratings for the contradicted statements following exposure to the premise statements are not likely to be attributable to disfluency [cf. @silva.etal2017]. For instance, one statement pair was the premise statement, “No U.S. astronauts have died since the Challenger explosion in 1986” paired with the implied statement, “The space shuttle Columbia disintegrated over Texas in 2003” (true, but contradicted by the "premise"). In contrast with prior work examining conflicting statements, there is no direct one-to-one mapping of concepts between the two statements. Instead, a chain of inferences must developed for a conclusion to be drawn: that the space shuttle Columbia contained astronauts, that its disintegration would have killed them, and that 2003 is later than 1986. 
 
 In addition, we make several additional contributions toward definitively demonstrating the illusory implication effect beyond existing studies by 1) testing the effect with large samples of participants (present studies $N = 1020$), 2) utilizing modern hierarchical statistical modeling methods, and 3) taking great pains to ensure that participants' truth ratings are not influenced by task demands (Experiments 2 and 3). Across our studies, we find further compelling evidence for this “illusory implication” effect, indicating that mere exposure has genuine impacts on beliefs extending beyond those attributable to metacognitive cues.
 
@@ -679,7 +687,7 @@ fig1 <- df %>%
   mutate(
     exposure_cond = if_else(exposure_cond=="fact", "Fact condition", "Quiz condition"),
     exposed = if_else(exposed==1, "Exposed", "Unexposed"),
-    B_implied_true = as.character(B_implied_true)
+    B_implied_true = if_else( B_implied_true == "T implied F", "Contradicted", "Entailed") #as.character(B_implied_true)
     ) %>% 
   ggplot(
     aes(x=B_implied_true, color=factor(exposed), shape=factor(exposed), y = M, ymin = ll, ymax=ul)
@@ -698,7 +706,7 @@ fig1
 
 ### Materials
 
-We created 24 pairs of statements presenting claims about history. Each pair consisted of a "premise" statement and a "implied" statement. Each “premise” statement was a falsehood that implied either the truth or falsity of the “implied” statement. Of the pairs, 12 had premise statements implying that a true statement was false (true-implied-false) and the other 12 had premise statements implying another false statement was true (false-implied-true). For instance, one "true-implied-false" pair was the premise statement, “No U.S. astronauts have died since the Challenger explosion in 1986” paired with the implied statement, “The space shuttle Columbia disintegrated over Texas in 2003” (true, but implied to be false by the "premise"). An example of a "false-implied-true" pair was the premise statement, "The Tour de France has been held every year since its inception in 1903" paired with the implied statement, "The Tour de France was still held during WWI and WWII" (false, but implied true by the "premise").
+We created 24 pairs of statements presenting claims about history. Each pair consisted of a "premise" statement and a "implication" statement. Each “premise” statement was a falsehood that either entailed or contradicted the “implication” statement. Of the pairs, 12 had premise statements implying that a true statement was false ("contradicted") and the other 12 had premise statements implying another false statement was true ("entailed"). For instance, one "contradicted" pair was the premise statement, “No U.S. astronauts have died since the Challenger explosion in 1986” paired with the implied statement, “The space shuttle Columbia disintegrated over Texas in 2003” (true, but contradicted by the "premise"). An example of an "entailed" pair was the premise statement, "The Tour de France has been held every year since its inception in 1903" paired with the implied statement, "The Tour de France was still held during WWI and WWII" (false, but entailed by the "premise").
 
 ### Procedures
 
@@ -712,9 +720,9 @@ Participants in the quiz condition were told that they were to be given a true/f
 
 After their initial exposure to the statements, participants provided basic demographic information and were then presented with the expanded 7 question version of the Cognitive Reflection Task [CRT, @frederick2005; @toplak.etal2014]. These tasks served to provide a period of distraction between exposure and test.
 
-Finally, the testing phase for all participants consisted of a true-or-false quiz, where participants were asked to rate their confidence that each statement was true or false. These ratings were made on a 6-point scale from "Definitely False" to "Definitely True". The items tested included both "premise" and "implied" statements from the 24 item-pairs. Participants were quizzed on the 8 previously-exposed premise statements, as well as their corresponding "implied" statements. For comparison, they were also quizzed on 8 new premise statements and 8 unrelated implied statements. Participants were randomly assigned into three counterbalancing conditions that varied which of the statement-pairs were assigned to each exposure/test combination.
+Finally, the testing phase for all participants consisted of a true-or-false quiz, where participants were asked to rate their confidence that each statement was true or false. These ratings were made on a 6-point scale from "Definitely False" to "Definitely True". The items tested included both "premise" and "implied" statements from the 24 item-pairs. Participants were quizzed on the 8 previously-exposed premise statements, as well as their corresponding "implied" statements. For comparison within subjects, they were also quizzed on 8 new premise statements and 8 unrelated implication statements. Participants were randomly assigned into three counterbalancing conditions that varied which of the statement-pairs were assigned to each exposure/test combination.
 
-We tested for the illusory truth effect by comparing truth ratings for premise statements seen during exposure to those that had not been seen. Similarly, we tested for the illusory implication effect by comparing truth ratings for implication statements whose corresponding premise statements were and were not presented during the exposure phase. If mere exposure to "premise" statements affects participants' judgments of the "implied" statements, this would be evidence for an illusory implication effect.
+We tested for the illusory truth effect by comparing truth ratings for premise statements seen during exposure to those that had not been seen. Similarly, we tested for the illusory implication effect by comparing truth ratings for implication statements whose corresponding premise statements were and were not presented during the exposure phase. If mere exposure to "premise" statements affects participants' judgments of the "implication" statements, this would be evidence for an illusory implication effect.
 
 At the end of the study, participants were debriefed and presented with a list of the false statements they had seen. 
 
@@ -730,7 +738,7 @@ First, we examined truth ratings for the premise and implications statements amo
 
 ### Quiz condition
 
-Figure 1 shows participants’ average truth ratings for the implication statements in the quiz condition. Participants gave higher truth ratings following exposure for false statements implied to be true, and somewhat lower truth ratings following exposure for true statements implied to be false. 
+Figure 1 shows participants’ average truth ratings for the implication statements in the quiz condition. Participants gave higher truth ratings following exposure for entailed statements, and somewhat lower truth ratings following exposure for contradicted statements. 
 
 
 ```{r, showtable1, echo=F, message=F}
@@ -743,15 +751,15 @@ mytable2
 ```
 
 
-An increase in truth ratings for the false-implied-true statements could potentially be explained by increased familiarity. This would be consistent with findings from Arkes and colleagues [-@arkes.etal1991], who found evidence for illusory truth for novel statements that were on the same topic as previously-seen statements. However, familiarity cannot explain the decrease in truth ratings for the true-implied-false items, as familiarity should encourage uniformly higher, not lower, truth ratings.
+An increase in truth ratings for the entailed statements could potentially be explained by familiarity or fluency. This would be consistent with findings from Arkes and colleagues [-@arkes.etal1991], who found evidence for illusory truth for novel statements that were on the same topic as previously-seen statements. However, simple metacognitive cues cannot explain the decrease in truth ratings for the contradicted items, as familiarity or fluency should encourage uniformly higher, not lower, truth ratings.
 
-A regression model was used to tease apart the effects of familiarity and logical implication. The model includes a) a binary variable indicating the type of implication statement (true-implied-false or false-implied-true), b) a binary predictor for prior exposure to the related premise coded zero when the premise was not seen and 1 when it was seen (capturing potential effects of familiarity), c) and a variable capturing the effect of implications, coded 1 for implied truth, -1 for implied falsehood, and zero when the related premise statement was not seen at exposure. Thus the "implication" predictor accounts for the effect of exposure to the premise on truth judgments for the implied statements (either positive or negative), while the "familiarity" predictor accounts for any positive effect of familiarity. We also incorporated "maximal" random intercepts and slopes for all terms varying by subject and item [@barr.etal2013]. Expressed in the common “lme4” syntax [@bates.etal2015], the regression model was:
+A regression model was used to tease apart the possible metacognitive effects of mere exposure of and logical implication. The model includes a) a binary variable indicating the type of implication statement's actual truth value (true or false), b) a binary predictor for prior exposure to the related premise coded zero when the premise was not seen and 1 when it was seen (capturing potential uni-directional metacognitive effects of exposure), c) and a variable capturing the effect of implications, coded 1 for implied truth, -1 for implied falsehood, and zero when the related premise statement was not seen at exposure. Thus the "implication" predictor accounts for the effect of exposure to the premise on truth judgments for the implied statements (either positive or negative), while the "exposure" predictor accounts for any positive effect from metacognitive cues. We also incorporated "maximal" random intercepts and slopes for all terms varying by subject and item [@barr.etal2013]. Expressed in the common “lme4” syntax [@bates.etal2015], the regression model was:
 
 \begin{align*}
 \text{response} \sim 
- \text{item type} &+ \text{familiarity} + \text{implication} \\
-&+ (1 + \text{familiarity} + \text{implication}|\text{subject}) \\
-&+ (1 + \text{familiarity} + \text{implication}|\text{item})
+ \text{statement truth} &+ \text{exposure} + \text{implication} \\
+&+ (1 + \text{exposure} + \text{implication}|\text{subject}) \\
+&+ (1 + \text{exposure} + \text{implication}|\text{item})
 \end{align*}
 
 Table 1 presents a summary of the posterior distribution estimated for the population-level coefficients in this model. The results indicate that both familiarity and the implication of the premise statements affected participants’ truth ratings. The implication effect is credibly greater than zero.
@@ -785,7 +793,8 @@ fig2 <- df2 %>%
   ) %>% 
   filter(item_type == "B") %>% 
   mutate(
-    exposed = if_else(exposed, "Exposed", "Unexposed")
+    exposed = if_else(exposed, "Exposed", "Unexposed"),
+    B_implied_true = if_else(B_implied_true == "T implied F", "Contradicted", "Entailed") 
   ) %>% 
   group_by(exposed, exposure_cond, B_implied_true) %>% 
   summarize(
@@ -820,7 +829,7 @@ A total of 300 participants were recruited from CloudResearch using procedures i
 
 All items and procedures were identical to Experiment 1 except for three changes. 
 
-First, all participants were assigned to a new “interest” condition. At exposure, participants were told that they would see a set of statements, some true and some false, and they were instructed to rate how interesting each statement was. This change was made to avoid forcing participants to make a true/false judgment for the exposed premise-statements, which could have pushed them to try to make coherent or consistent responses to the related implication-statements. Importantly, as with a true/false quiz, the presentation of statements in this context should not warrant any inference as to the truth of those statements. 
+First, all participants were assigned to a new “interest” condition. At exposure, participants were told that they would see a set of statements, some true and some false, and they were instructed to rate how interesting each statement was. This change was made to avoid forcing participants to make a true/false judgment for the exposed premise statements, which could have pushed them to try to make coherent or consistent responses to the related implication statements. Importantly, as with a true/false quiz, the presentation of statements in this context should not warrant any inference as to the truth of those statements. 
 
 Secondly, to provide a longer period of distraction between exposure and test, the ordering of the items in the test phase was rearranged. Participants first judged the truth of 24 control items (12 true and 12 false) to extend the time between viewing the main test items. 
 
@@ -828,7 +837,7 @@ Third, another change in test presentation order further prevented any consisten
 
 ## Results
 
-Figure 2 shows participants’ average truth ratings for the implication statements with and without exposure to their corresponding premise statements in Experiment 2. The illusory implication effect was again observed. As shown in the figure, truth ratings were clearly affected by exposure: participants gave higher truth ratings following exposure for false statements implied to be true, and lower truth ratings following exposure for true statements implied to be false. Table 2 shows the posterior population-level estimates for an identical regression as was conducted for Experiment 1. Experiment 2 replicated the effects of Experiment 1 in a revised design that eliminated any consistency pressure or demands on participants. In fact, the magnitude of the effect for the implication statements was somewhat larger in Experiment 2 than in Experiment 1. 
+Figure 2 shows participants’ average truth ratings for the implication statements with and without exposure to their corresponding premise statements in Experiment 2. The illusory implication effect was again observed. As shown in the figure, truth ratings were clearly affected by exposure: participants gave higher truth ratings following exposure for entailed statements, and lower truth ratings following exposure for contradicted statements. Table 2 shows the posterior population-level estimates for an identical regression as was conducted for Experiment 1. Experiment 2 replicated the effects of Experiment 1 in a revised design that eliminated any consistency pressure or demands on participants. In fact, the magnitude of the effect for the implication statements was somewhat larger in Experiment 2 than in Experiment 1. 
 
 
 ```{r fig3, fig.env="figure*", fig.pos = "!hbt", fig.align = "center", fig.width=6.5, fig.height=3, fig.cap="Average truth ratings for individual premise and implication statements in Experiment 2, broken down by exposure (exposed vs. unexposed) and implication type (false-implied-true vs true-implied-false). For visualization purposes, means were calculated by translating ordinal responses onto a scale from -2.5 to 2.5. Error bars indicate standard errors.", num.cols.cap=2}
@@ -848,7 +857,8 @@ df2_plotting <- df2 %>%
                                           "indonesia", "eiffel", "newyork", "presidents",
                                           "tour", "africa", "disney", "avengers"), "F implied T", "T implied F")
   ) %>% 
-  mutate(exposed = if_else(exposed, "Exposed", "Unexposed"))
+  mutate(exposed = if_else(exposed, "Exposed", "Unexposed")) %>% 
+  mutate(B_implied_true = if_else(B_implied_true == "T implied F", "Contradicted", "Entailed") )
 
 df2_extra <- df2_plotting %>% 
   filter(phase=="test") %>% 
@@ -862,7 +872,7 @@ df2_extra <- df2_plotting %>%
   ) %>% 
   spread(exposed, M) %>% 
   mutate(diff = abs(Exposed-Unexposed)) %>% 
-  select(-Exposed, -Unexposed)
+  select(-Exposed, -Unexposed) 
 
 plt_A <- df2_plotting %>% 
   filter(phase=="test") %>% 
@@ -950,7 +960,8 @@ df3 %>%
   filter(phase=="test") %>% 
   filter(item_type == "B") %>% 
   mutate(
-    exposed = if_else(exposed, "Exposed", "Unexposed")
+    exposed = if_else(exposed, "Exposed", "Unexposed"),
+    B_implied_true = if_else(B_implied_true == "T implied F", "Contradicted", "Entailed") 
   ) %>% 
   group_by(exposed, B_implied_true) %>% 
   summarize(
@@ -959,7 +970,7 @@ df3 %>%
     ll = M - se,
     ul = M + se
   ) %>% 
-  mutate(B_implied_true = ordered(B_implied_true, levels = c("F implied T", "T implied F"))) %>% 
+  # mutate(B_implied_true = ordered(B_implied_true, levels = c("F implied T", "T implied F"))) %>% 
   ggplot(
     aes(x=B_implied_true, color=factor(exposed), shape=factor(exposed), y = M, ymin = ll, ymax=ul)
   ) +
@@ -984,7 +995,7 @@ mytable3
 
 ### Secondary and exploratory analyses
 
-In Experiments 1 and 2, the effect of exposure was weaker than the measured implication effect, so that average truth ratings were higher after exposure for false-implied-true items and lower for true-implied-false items (Figures 1 and 2). In Experiment 3 however, the estimated effect of exposure and implication were similar, and truth ratings were similar for exposed and unexposed true-implied-false items (Figure 3). Although the estimate for the implication effect in our statistical model was clearly greater than zero, this may nevertheless allow a possible alternate explanation of our findings: that the true-implied-false items' premise statements simply do not engender as much familiarity or fluency for their implications as do the false-implied-true items, so that the effects differ between these groups. Put another way, the identification of the "implication" effect coefficient rests on the assumption that familiarity and fluency effects are not accidentally confounded with item groups. 
+In Experiments 1 and 2, the effect of exposure was weaker than the measured implication effect, so that average truth ratings were higher after exposure for entailed items and lower for contradicted items (Figures 1 and 2). In Experiment 3 however, the estimated effect of exposure and implication were similar, and truth ratings were similar for exposed and unexposed contradicted items (Figure 3). Although the estimate for the implication effect in our statistical model was clearly greater than zero, this may nevertheless allow a possible alternate explanation of our findings: that the contradicted items' premise statements simply do not engender as much familiarity or fluency for their implications as do the entailed items, so that the effects differ between these groups. Put another way, the identification of the "implication" effect coefficient rests on the assumption that familiarity and fluency effects are not accidentally confounded with item groups. 
 
 To assess the potential for confounding in the familiarity or fluency that exposure to the premise statements would likely engender for the implication statements, we examined the degree of surface-level overlap within each item pair. We compared the proportion of shared words (after lemmatization) between premise and implications within each item pair. As shown in Figure 4, there is no evidence for confounding between surface-level similarity and item types (median overlap = .19 in false-implied-true items, .21 in true-implied-false items) that would suggest differential effects of fluency or familiarity across types.
 
