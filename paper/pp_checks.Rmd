@@ -1,0 +1,632 @@
+---
+title: "Posterior Retrodictive Checks"
+output: pdf_document
+# date: "2024-09-24"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+```
+
+
+```{r}
+library(tidyverse)
+library(patchwork)
+library(textstem)
+library(tidybayes)
+
+source("fig-code.R")
+
+df <- read_csv("../data/illusory-truth-main.csv") %>% 
+  mutate(
+    response = ordered(response, levels = c("Definitely False", "Probably False", "Maybe False", "Maybe True", "Probably True", "Definitely True"))
+  ) %>% 
+  mutate(resp_num = recode(response,
+                           `Definitely True` = 2.5,
+                           `Probably True` = 1.5,
+                           `Maybe True` = .5,
+                           `Maybe False` = -.5,
+                           `Probably False` = -1.5,
+                           `Definitely False` = -2.5)
+         ) %>% 
+  mutate(
+    B_implied_true = ifelse(item_pair %in% c("war", "whitehouse", "bezos", "jackson",
+                                          "indonesia", "eiffel", "newyork", "presidents",
+                                          "tour", "africa", "disney", "avengers"), 
+                            "F implied T", "T implied F"),
+    B_implied_true = relevel(factor(B_implied_true), ref = "T implied F"),
+      acc_num = case_when(
+        item_type=="B" & B_implied_true == "F implied T" ~ -1*resp_num,
+        item_type=="B" & B_implied_true != "F implied T" ~ resp_num,
+        item_type=="A" ~ -1*resp_num,
+        item_type=="Falsehood" ~ -1*resp_num,
+        TRUE ~ resp_num
+        ),
+    acc_ordered = ordered(acc_num)
+  )
+```
+
+```{r fit-models-exp1, include=F}
+library(brms)
+
+## Experiment 1
+
+## Premises
+
+fit_premise_fact <- brm(
+  response ~ exposed + (1|subj_id) + (1|item_pair),
+  data = df %>% 
+    filter(phase=="test", item_type=="A", exposure_cond=="fact"),
+  chains = 4,
+  cores = 4,
+  family=cumulative(),
+  file="../local/fit_premise_fact"
+)
+
+fit_premise_quiz <- brm(
+  response ~ exposed + (1|subj_id) + (1|item_pair),
+  data = df %>% 
+    filter(phase=="test", item_type=="A", exposure_cond=="quiz"),
+  chains = 4,
+  cores = 4,
+  family=cumulative(),
+  file="../local/fit_premise_quiz"
+)
+
+## within-subjs test
+
+df_reg_within <- df %>% 
+  filter(exposure_cond=="quiz") %>%
+  filter(item_type == "A") %>% 
+  ungroup() %>% 
+  drop_na(response) %>% 
+  select(subj_id, condition, exposed, exposure_cond, item_pair, phase, response)
+
+## this is a bit needlessly complex but it is equivalent to testing the difference
+fit_premise_within <- brm(
+  response ~ phase + (1|subj_id:item_pair),
+  data = df_reg_within,
+  chains = 4,
+  cores = 4,
+  family=cumulative(),
+  file="../local/fit_premise_within"
+)
+
+## Implications
+
+fit_imp_fact <- brm(
+  acc_ordered ~ exposed*B_implied_true + (1|subj_id) + (1|item_pair),
+  data = df %>% 
+    filter(phase=="test", item_type=="B", exposure_cond=="fact"),
+  family = cumulative(),
+  chains = 4,
+  cores = 4,
+  file="../local/fit_imp_fact"
+)
+
+# fit_imp_quiz <- brm(
+#   acc_ordered ~ exposed + (1|subj_id) + (1|item_pair),
+#   data = df %>% 
+#     filter(phase=="test", item_type=="B", exposure_cond=="quiz"),
+#   family = cumulative(),
+#   chains = 4,
+#   cores = 4,
+#   file="../local/fit_imp_quiz"
+# )
+
+df_reg <- df %>% 
+  mutate(
+    familiarity = exposed,
+    implication = case_when(
+      B_implied_true == "F implied T" & exposed==1 ~ 1,
+      B_implied_true == "T implied F" & exposed==1 ~ -1,
+      TRUE ~ 0
+    )
+    # implied_true = if_else(B_implied_true == "F implied T" & exposure==1, 1, 0),
+    # implied_false = if_else(B_implied_true != "F implied T" & exposure==1, 1, 0),
+    ) %>% 
+    filter(phase=="test", item_type=="B")
+
+fit_imp_quiz_int_dist <- brm(
+  bf(response ~ familiarity + implication + B_implied_true + 
+    (1 + familiarity + implication|subj_id) + 
+    (1 + familiarity + implication|item_pair)) + lf(disc ~ 0 + familiarity + implication + B_implied_true),  # familiarity + implication + grouping (optional)
+  data = df_reg %>% filter(exposure_cond=="quiz"),
+  family = cumulative(),
+  chains = 4,
+  cores = 4,
+  file="../local/fit_imp_quiz_int_max_dist"
+)
+
+
+fit_imp_quiz_int <- brm(
+  bf(response ~ familiarity + implication + B_implied_true + 
+    (1 + familiarity + implication|subj_id) + 
+    (1 + familiarity + implication|item_pair)),
+  data = df_reg %>% filter(exposure_cond=="quiz"),
+  family = cumulative(),
+  chains = 4,
+  cores = 4,
+  file="../local/fit_imp_quiz_int_max"
+)
+
+fit_imp_fact_int <- brm(
+  response ~ familiarity + implication + B_implied_true + 
+    (1 + familiarity + implication|subj_id) + 
+    (1 + familiarity + implication|item_pair),  # familiarity + implication + grouping (optional)
+  data = df_reg %>% filter(exposure_cond=="fact"),
+  family = cumulative(),
+  chains = 4,
+  cores = 4,
+  file="../local/fit_imp_fact_int_max"
+)
+
+
+fit_imp_quiz_int_bin <- brm(
+  response_bin ~ familiarity + implication + B_implied_true + 
+    (1 + familiarity + implication|subj_id) + 
+    (1 + familiarity + implication|item_pair),  # familiarity + implication + grouping (optional)
+  data = df_reg %>% filter(exposure_cond=="quiz") %>% mutate(response_bin = if_else(grepl("True", response), 1, 0)),
+  family = bernoulli(),
+  chains = 4,
+  cores = 4,
+  file="../local/fit_imp_quiz_int_max_bin"
+)
+
+```
+
+
+```{r load-exp2, include=F}
+
+df2 <- read_csv("../data/illusory-truth-main2.csv") %>% 
+  mutate(
+    response = ordered(response, levels = c("Definitely False", "Probably False", "Maybe False", "Maybe True", "Probably True", "Definitely True"))
+  ) %>% 
+  mutate(resp_num = recode(response,
+                           `Definitely True` = 2.5,
+                           `Probably True` = 1.5,
+                           `Maybe True` = .5,
+                           `Maybe False` = -.5,
+                           `Probably False` = -1.5,
+                           `Definitely False` = -2.5)
+         ) %>% 
+  mutate(
+    B_implied_true = ifelse(item_pair %in% c("war", "whitehouse", "bezos", "jackson",
+                                          "indonesia", "eiffel", "newyork", "presidents",
+                                          "tour", "africa", "disney", "avengers"), 
+                            "F implied T", "T implied F"),
+    B_implied_true = relevel(factor(B_implied_true), ref = "T implied F"),
+      acc_num = case_when(
+        item_type=="B" & B_implied_true == "F implied T" ~ -1*resp_num,
+        item_type=="B" & B_implied_true != "F implied T" ~ resp_num,
+        item_type=="A" ~ -1*resp_num,
+        item_type=="Falsehood" ~ -1*resp_num,
+        TRUE ~ resp_num
+        ),
+    acc_ordered = ordered(acc_num)
+  )
+```
+
+```{r fit-models-exp2, include=F}
+
+## Experiment 2
+
+df_reg2 <- df2 %>% 
+  mutate(
+    familiarity = exposed,
+    implication = case_when(
+      B_implied_true == "F implied T" & exposed==1 ~ 1,
+      B_implied_true == "T implied F" & exposed==1 ~ -1,
+      TRUE ~ 0
+    )
+    # implied_true = if_else(B_implied_true == "F implied T" & exposure==1, 1, 0),
+    # implied_false = if_else(B_implied_true != "F implied T" & exposure==1, 1, 0),
+    ) %>% 
+    filter(phase=="test", item_type=="B", exposure_cond=="interest")
+
+## Implications
+
+fit_imp_exp2 <- brm(
+  response ~ familiarity + implication + B_implied_true + 
+    (1 + familiarity + implication|subj_id) + 
+    (1 + familiarity + implication|item_pair),  # familiarity + implication + grouping (optional)
+  data = df_reg2,
+  family = cumulative(),
+  prior = set_prior("lkj(5)", class = "cor"),
+  chains = 4,
+  cores = 4,
+  iter = 3000,
+  control = list(adapt_delta=.9),
+  file="../local/fit_imp_exp2_max"
+)
+
+fit_imp_exp2_bin <- brm(
+  response_bin ~ familiarity + implication + B_implied_true + 
+    (1 + familiarity + implication|subj_id) + 
+    (1 + familiarity + implication|item_pair),  # familiarity + implication + grouping (optional)
+  data = df_reg2 %>% mutate(response_bin = if_else(grepl("True", response), 1, 0)),
+  family = bernoulli(),
+  prior = set_prior("lkj(3)", class = "cor"),
+  chains = 4,
+  cores = 4,
+  iter = 3000,
+  control = list(adapt_delta=.9),
+  file="../local/fit_imp_exp2_max_bin"
+)
+
+# Premises
+
+fit_prem_exp2 <- brm(
+  response ~ exposed + (1 + exposed|subj_id) + (1 + exposed|item_pair),
+  data = df2 %>%
+    filter(phase=="test", item_type=="A"),
+  family = cumulative(),
+  chains = 4,
+  cores = 4,
+  file="../local/fit_prem_exp2_max"
+)
+```
+
+
+```{r fit-models-exp3, include=F}
+df_all <- read_csv("../data/illusory-truth-main-2.csv")
+  
+df_passing <- df_all %>% 
+  mutate(
+    fail_checks = case_when(
+      (item == "att_exp_titanic") & (response != "Statement B") ~ 1,
+      (item == "att_exp_old") & (response != "Statement A") ~ 1,
+      (item == "att_exp_wright") & (response != "Statement B") ~ 1,
+      (item == "att_test_taxes") & (grepl("True", response)) ~ 1,
+      (item == "att_test_pop") & (grepl("False", response)) ~ 1,
+      (item == "att_test_tall") & (grepl("True", response)) ~ 1,
+      instructions_check!="Mix of true and false" ~ 1,
+      TRUE ~ 0
+    )
+  ) %>%
+  group_by(subj_id) %>%
+  filter(sum(fail_checks) < 1) %>% # remove anyone failing checks (none fail)
+  filter(!grepl("att_", item)) %>% # (remove check items)
+  select(-fail_checks) %>% 
+  ungroup() %>% 
+  mutate(
+    suspicious = if_else(susp_check1 == "Yes", 1, 0)
+  )
+
+df3 <- df_passing  %>% 
+  filter(phase=="test") %>% 
+  mutate(
+    response = ordered(response, levels = c("Definitely False", "Probably False", "Maybe False", "Maybe True", "Probably True", "Definitely True"))
+  ) %>% 
+  mutate(resp_num = recode(response,
+                           `Definitely True` = 2.5,
+                           `Probably True` = 1.5,
+                           `Maybe True` = .5,
+                           `Maybe False` = -.5,
+                           `Probably False` = -1.5,
+                           `Definitely False` = -2.5)
+         ) %>% 
+  mutate(
+    B_implied_true = ifelse(item %in% c("war", "whitehouse", "gates", "jackson",
+                                          "indonesia", "eiffel", "newyork", "presidents",
+                                          "tour", "africa", "disney", "avengers"), 
+                            "F implied T", "T implied F"),
+    B_implied_true = relevel(factor(B_implied_true), ref = "T implied F"),
+      acc_num = case_when(
+        item_type=="B" & B_implied_true == "F implied T" ~ -1*resp_num,
+        item_type=="B" & B_implied_true != "F implied T" ~ resp_num,
+        item_type=="A" ~ -1*resp_num,
+        item_type=="Falsehood" ~ -1*resp_num,
+        TRUE ~ resp_num
+        ),
+    acc_ordered = ordered(acc_num)
+  )
+
+df_open_coded <- read_csv("../data/illusory-truth-main-2-free-responses-coded.csv") %>%
+  select(subj_id, flagged)
+
+df3 <- df3 %>% 
+  left_join(df_open_coded, by = "subj_id")
+
+## Main analyses
+
+df_reg3 <- df3 %>% 
+  mutate(
+    familiarity = exposed,
+    implication = case_when(
+      B_implied_true == "F implied T" & exposed==1 ~ 1,
+      B_implied_true == "T implied F" & exposed==1 ~ -1,
+      TRUE ~ 0
+    )
+    # implied_true = if_else(B_implied_true == "F implied T" & exposure==1, 1, 0),
+    # implied_false = if_else(B_implied_true != "F implied T" & exposure==1, 1, 0),
+    ) %>% 
+    filter(phase=="test", item_type=="B")
+
+
+fit_imp_maximal <- brm(
+  response ~ familiarity + implication + B_implied_true + (1 + familiarity + implication + B_implied_true |subj_id) + (1 + familiarity + implication|item),  # familiarity + implication + grouping (optional)
+  data = df_reg3,
+  family = cumulative(),
+  chains = 4,
+  cores = 4,
+  iter = 3000,
+  control = list(adapt_delta = .95),
+  file="../local/fit_imp_rep_maximal"
+)
+
+# fit_imp <- brm(
+#   response ~ familiarity + implication + B_implied_true + (1 |subj_id) + (1 |item),  # familiarity + implication + grouping (optional)
+#   data = df_reg,
+#   family = cumulative(),
+#   chains = 4,
+#   cores = 4,
+#   file="local/fit_imp_rep"
+# )
+
+### excluding suspicious
+
+df_reg3_nosus <- df_reg3 %>% 
+    filter(suspicious==0)
+
+
+fit_imp_maximal2 <- brm(
+  response ~ familiarity + implication + B_implied_true + (1 + familiarity + implication + B_implied_true |subj_id) + (1 + familiarity + implication|item),  # familiarity + implication + grouping (optional)
+  data = df_reg3_nosus,
+  family = cumulative(),
+  chains = 4,
+  cores = 4,
+  iter = 3000,
+  control = list(adapt_delta = .95),
+  file="../local/fit_imp_rep_maximal2"
+)
+
+df_reg3_noflag <- df_reg3 %>% 
+    filter(suspicious==0, flagged==0)
+
+
+fit_imp_maximal3 <- brm(
+  response ~ familiarity + implication + B_implied_true + (1 + familiarity + implication + B_implied_true |subj_id) + (1 + familiarity + implication|item),  # familiarity + implication + grouping (optional)
+  data = df_reg3_noflag,
+  family = cumulative(),
+  chains = 4,
+  cores = 4,
+  iter = 3000,
+  control = list(adapt_delta = .95),
+  file="../local/fit_imp_rep_maximal3"
+)
+
+fit_imp_maximal3_bin <- brm(
+  response_bin ~ familiarity + implication + B_implied_true + 
+    (1 + familiarity + implication|subj_id) + 
+    (1 + familiarity + implication|item),  # familiarity + implication + grouping (optional)
+  data = df_reg3_noflag %>% mutate(response_bin = if_else(grepl("True", response), 1, 0)),
+  family = bernoulli(),
+  prior = set_prior("lkj(3)", class = "cor"),
+  chains = 4,
+  cores = 4,
+  iter = 3000,
+  control = list(adapt_delta=.9),
+  file="../local/fit_imp_maximal3_bin"
+)
+
+```
+
+```{r, item-fluency-analysis, include=F}
+statements_raw <- read_csv("../items.csv")
+
+clean_words <- function(x){
+  lower <- str_to_lower(x)
+  word_list <- str_split(lower, " ")
+  lemmas <- lemmatize_strings(word_list[[1]])
+  # no_stops <- lemmas[ !(lemmas %in% lemmatize_words(lexicon::sw_lucene)) ]
+  lemma_stems <- stem_words(lemmas)
+
+  out <- gsub("('|,)", "", lemma_stems)
+
+  return(out)
+
+}
+
+statements <- statements_raw %>%
+  mutate(
+    prem_lst = map(premise, clean_words),
+    imp_lst = map(implication, clean_words),
+    overlap = map2_dbl(prem_lst, imp_lst, ~sum(.y %in% .x)), # how many words in implication were in premise?
+    overlap_prop = overlap/length(imp_lst)
+  )
+
+statement_overlap <- statements %>%
+  group_by(B_implied_true) %>%
+  summarize(overlap = median(overlap_prop))
+
+item_fluency_fig <- statements %>%
+  mutate(
+    B_implied_true = if_else(B_implied_true==1, "F implied T", "T implied F"),
+    B_implied_true = if_else(B_implied_true == "T implied F", "Contradicted", "Entailed") 
+    ) %>% 
+  ggplot(aes(x = factor(B_implied_true), y = overlap_prop)) +
+  stat_summary(fun.data=mean_se, fun.args = list(mult=2), 
+                 geom="pointrange", color="red", shape=3, position=position_dodge()) +
+  geom_jitter(width=.1, size=2) +
+  # geom_dotplot(binaxis="y", stackdir="center", ,
+  #              stackratio=1.5, dotsize=.6) +
+  theme_bw(base_size = 12) +
+  theme(panel.grid=element_blank()) +
+  ylim(0,.5) +
+  labs(y = "Prop. shared lemmas", x = "Item Group")
+```
+
+
+```{r make-tables, include=F}
+make_table_df <- function(fit){
+  fit_sum <- summary(fit)
+
+  tbl_sum <- as_tibble(fit_sum$fixed, rownames="Term") %>%
+    # bind_rows(
+    #   as_tibble(fit_sum$random$item, rownames="Term") %>%
+    #     mutate(Term = paste0("item_",Term))
+    # ) %>%
+    # bind_rows(
+    #   as_tibble(fit_sum$random$subj_id, rownames="Term") %>%
+    #     mutate(Term = paste0("subj_",Term))
+    # ) %>%
+    select(-Rhat, -Est.Error, -Bulk_ESS, -Tail_ESS)
+
+  return(tbl_sum)
+}
+
+make_table <- function(table_df, caption=NULL){
+
+  kableExtra::kbl(table_df, digits = 2, booktabs = T, caption=caption, escape = F, format="latex") %>%
+    kableExtra::kable_classic(full_width=F)
+}
+
+mytable1 <- make_table_df(fit_imp_quiz_int) %>% 
+  rename(`$CI_{2.5\\%}$` = `l-95% CI`,`$CI_{97.5\\%}$` = `u-95% CI`) %>%
+  mutate(
+    Term = case_when(
+      Term == "B_implied_trueFimpliedT" ~ "Statement Truth",
+      Term == "familiarity" ~ "Exposure",
+      Term == "implication" ~ "Implication",
+      # grepl("Intercept\\[", Term) ~ gsub("Intercept\\[(.*)\\]","$\\\\alpha_{\\1}$", Term),
+      Term == "item_sd(Intercept)" ~ "$\\sigma_{item}$",
+      Term == "subj_sd(Intercept)" ~ "$\\sigma_{subj}$",
+      TRUE ~ Term
+    )
+  ) %>% 
+  make_table("Population coefficients and 95\\% credible intervals of Bayesian regression model for Implication effects in Experiment 1.")
+
+mytable2 <- make_table_df(fit_imp_exp2) %>% 
+  rename(`$CI_{2.5\\%}$` = `l-95% CI`,`$CI_{97.5\\%}$` = `u-95% CI`) %>%
+  mutate(
+    Term = case_when(
+      Term == "B_implied_trueFimpliedT" ~ "Statement Truth",
+      grepl("familiarity", Term) ~ "Exposure",
+      Term == "implication" ~ "Implication",
+      # grepl("Intercept\\[", Term) ~ gsub("Intercept\\[(.*)\\]","$\\\\alpha_{\\1}$", Term),
+      # Term == "item_sd(Intercept)" ~ "$\\sigma_{item}$",
+      # Term == "subj_sd(Intercept)" ~ "$\\sigma_{subj}$",
+      TRUE ~ Term
+    )
+  ) %>% 
+  make_table("Population coefficients and 95\\% credible intervals of Bayesian regression model for Implication effects in Experiment 2.")
+
+mytable3 <- make_table_df(fit_imp_maximal) %>% 
+  rename(`$CI_{2.5\\%}$` = `l-95% CI`,`$CI_{97.5\\%}$` = `u-95% CI`) %>%
+  mutate(
+    Term = case_when(
+      Term == "B_implied_trueFimpliedT" ~ "Statement Truth",
+      Term == "familiarity" ~ "Exposure",
+      Term == "implication" ~ "Implication",
+      # grepl("Intercept\\[", Term) ~ gsub("Intercept\\[(.*)\\]","$\\\\alpha_{\\1}$", Term),
+      grepl("familiarity", Term) ~ "Exposure",
+      # Term == "item_sd(Intercept)" ~ "$\\sigma_{item}$",
+      # Term == "subj_sd(Intercept)" ~ "$\\sigma_{subj}$",
+      TRUE ~ Term
+    )
+  ) %>% 
+  make_table("Population coefficients and 95\\% credible intervals of Bayesian regression model for Implication effects in Experiment 3.")
+
+```
+
+```{r helpers, include=F}
+report_reg_coef <- function(model, coef_name){
+  
+  res_df <- broom.mixed::tidy(model, effects="fixed")
+  res <- res_df %>% 
+    filter(term == coef_name) %>% 
+    mutate_if(is.numeric, ~round(., 3))
+  
+  
+  res_text <- paste0(res[[1,4]], ", 95% CI [", res[[1,6]],", ",res[[1,7]], "]")
+  return(res_text)
+}
+
+# report_reg_coef(fit_imp_exp2, "familiarityTRUE")
+# report_reg_coef(fit_imp_fact, "exposed")
+```
+
+```{r demographics, include=F}
+df_demo <- df %>% 
+  group_by(subj_id) %>% 
+  summarize(
+    age = first(age),
+    gender = first(gender)
+  )
+  
+df2_demo <- df2 %>% 
+  group_by(subj_id) %>% 
+  summarize(
+    age = first(age),
+    gender = first(gender)
+  )
+
+df3_demo <- df3 %>% 
+  group_by(subj_id) %>% 
+  summarize(
+    age = first(age),
+    gender = first(gender)
+  )
+
+exp1_n_f <- df_demo %>% 
+  filter(gender=="Female") %>% 
+  nrow()
+
+exp2_n_f <- df2_demo %>% 
+  filter(gender=="Female") %>% 
+  nrow()
+
+exp3_n_f <- df3_demo %>% 
+  filter(gender=="Female") %>% 
+  nrow()
+
+exp1_age <- median(df_demo$age, na.rm=TRUE)
+exp2_age <- median(df2_demo$age, na.rm=TRUE)
+exp3_age <- median(df3_demo$age, na.rm=TRUE)
+
+exp3_susp_count <- df3 %>% 
+  filter(suspicious==1) %>% 
+  distinct(subj_id) %>% 
+  nrow()
+
+exp3_flagged_count <- df3 %>% 
+  filter(suspicious==0) %>%
+  distinct(subj_id, .keep_all = TRUE) %>% 
+  filter(flagged==1) %>% 
+  nrow()
+
+
+```
+
+
+## Experiment 1
+
+```{r cars}
+pp_check(fit_imp_quiz_int, type = 'bars_grouped', group = 'implication', ndraws = 500)
+pp_check(fit_imp_quiz_int, type = 'bars_grouped', group = 'familiarity', ndraws = 500)
+pp_check(fit_imp_quiz_int, type = 'bars_grouped', group = 'B_implied_true', ndraws = 500)
+
+```
+
+## Experiment 2
+
+
+```{r pressure}
+pp_check(fit_imp_exp2, type = 'bars_grouped', group = 'implication', ndraws = 500)
+pp_check(fit_imp_exp2, type = 'bars_grouped', group = 'familiarity', ndraws = 500)
+pp_check(fit_imp_exp2, type = 'bars_grouped', group = 'B_implied_true', ndraws = 500)
+
+```
+
+## Experiment 3
+
+```{r}
+
+pp_check(fit_imp_maximal3, type = 'bars_grouped', group = 'implication', ndraws = 500)
+pp_check(fit_imp_maximal3, type = 'bars_grouped', group = 'familiarity', ndraws = 500)
+pp_check(fit_imp_maximal3, type = 'bars_grouped', group = 'B_implied_true', ndraws = 500)
+
+```
+

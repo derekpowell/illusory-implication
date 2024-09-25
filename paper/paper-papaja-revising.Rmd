@@ -6,8 +6,8 @@ author:
   - name          : "Justin Mikell"
     affiliation   : "1"
     corresponding : yes    # Define only one corresponding author
-    address       : "Arizona State University - West Campus, 4701 W. Thunderbird Rd., Glendale, AZ 85306"
-    email         : "jmikell@asu.edu"
+    address       : "University of California, Irvine"
+    email         : "jmikell@uci.edu"
     role:         # Contributorship roles (e.g., CRediT, https://casrai.org/credit/)
       - "Investigation"
       - "Methodology"
@@ -15,7 +15,8 @@ author:
       - "Writing - Original Draft Preparation"
       - "Writing - Review & Editing"
   - name          : "Derek Powell"
-    affiliation   : "1"
+    affiliation   : "2"
+    address       : "Arizona State University - West Valley"
     role:
       - "Conceptualization"
       - "Formal Analysis"
@@ -37,12 +38,12 @@ authornote: |
   **Ethics Statement**: This research was conducted under the approval of the Institutional Review Board at Arizona State University, IRB protocol ID STUDY00013322. Informed consent was obtained from all participants.
 
 abstract: |
-  Numerous psychological findings have shown that incidental exposure to ideas makes those ideas seem more true, a finding commonly referred to as the “illusory truth” effect.  Under predominant accounts of the illusory truth effect, initial exposure to a statement provides a metacognitive feeling of “fluency” or familiarity that, upon subsequent exposure, leads people to infer the statement is more likely to be true. However, genuine beliefs do not only affect truth judgments about individual statements, they also imply other beliefs and drive decision-making. Here, we consider whether exposure to “premise” statements affects people's truth ratings for novel “implied” statements, a pattern of findings we call the "illusory implication" effect. We argue these effects would constitute evidence for genuine belief change from incidental exposure and  identify a handful of existing findings that offer preliminary support for this claim. Building upon these, we conduct three new pre-registered experiments to further test this hypothesis, finding additional evidence that exposure to “premise” statements affected participants’ truth ratings for novel “implied” statements, including for considerably more distant implications than those previously explored. Our findings suggest that the effects of incidental exposure reach further than previously thought, with potentially consequential implications for concerns around mis- and disinformation.
+  Numerous psychological findings have shown that incidental exposure to ideas makes those ideas seem more true, a finding commonly referred to as the “illusory truth” effect.  Under many accounts of the illusory truth effect, initial exposure to a statement provides a metacognitive feeling of “fluency” or familiarity that, upon subsequent exposure, leads people to infer the statement is more likely to be true. However, genuine beliefs do not only affect truth judgments about individual statements, they also imply other beliefs and drive decision-making. Here, we consider whether exposure to “premise” statements affects people's truth ratings for novel “implied” statements, a pattern of findings we call the "illusory implication" effect. We argue these effects would constitute evidence for genuine belief change from incidental exposure and  identify a handful of existing findings that offer preliminary support for this claim. Building upon these, we conduct three new pre-registered experiments to further test this hypothesis, finding additional evidence that exposure to “premise” statements affected participants’ truth ratings for novel “implied” statements, including for considerably more distant implications than those previously explored. Our findings suggest that the effects of incidental exposure reach further than previously thought, with potentially consequential implications for concerns around mis- and disinformation.
   
   <!-- https://tinyurl.com/ybremelq -->
   
 keywords          : "Illusory truth; Metacognition; Cognitive Psychology; Misinformation"
-wordcount         : "6791"
+wordcount         : "7531"
 
 bibliography      : "references.bib"
 
@@ -82,6 +83,7 @@ knitr::opts_chunk$set(fig.width=3, fig.height=3, fig.crop = F,
 library(tidyverse)
 library(patchwork)
 library(textstem)
+library(tidybayes)
 
 source("fig-code.R")
 
@@ -195,11 +197,22 @@ df_reg <- df %>%
     ) %>% 
     filter(phase=="test", item_type=="B")
 
+fit_imp_quiz_int_dist <- brm(
+  bf(response ~ familiarity + implication + B_implied_true + 
+    (1 + familiarity + implication|subj_id) + 
+    (1 + familiarity + implication|item_pair)) + lf(disc ~ 0 + familiarity + implication + B_implied_true),  # familiarity + implication + grouping (optional)
+  data = df_reg %>% filter(exposure_cond=="quiz"),
+  family = cumulative(),
+  chains = 4,
+  cores = 4,
+  file="../local/fit_imp_quiz_int_max_dist"
+)
+
 
 fit_imp_quiz_int <- brm(
-  response ~ familiarity + implication + B_implied_true + 
+  bf(response ~ familiarity + implication + B_implied_true + 
     (1 + familiarity + implication|subj_id) + 
-    (1 + familiarity + implication|item_pair),  # familiarity + implication + grouping (optional)
+    (1 + familiarity + implication|item_pair)),
   data = df_reg %>% filter(exposure_cond=="quiz"),
   family = cumulative(),
   chains = 4,
@@ -216,6 +229,18 @@ fit_imp_fact_int <- brm(
   chains = 4,
   cores = 4,
   file="../local/fit_imp_fact_int_max"
+)
+
+
+fit_imp_quiz_int_bin <- brm(
+  response_bin ~ familiarity + implication + B_implied_true + 
+    (1 + familiarity + implication|subj_id) + 
+    (1 + familiarity + implication|item_pair),  # familiarity + implication + grouping (optional)
+  data = df_reg %>% filter(exposure_cond=="quiz") %>% mutate(response_bin = if_else(grepl("True", response), 1, 0)),
+  family = bernoulli(),
+  chains = 4,
+  cores = 4,
+  file="../local/fit_imp_quiz_int_max_bin"
 )
 
 ```
@@ -283,6 +308,20 @@ fit_imp_exp2 <- brm(
   iter = 3000,
   control = list(adapt_delta=.9),
   file="../local/fit_imp_exp2_max"
+)
+
+fit_imp_exp2_bin <- brm(
+  response_bin ~ familiarity + implication + B_implied_true + 
+    (1 + familiarity + implication|subj_id) + 
+    (1 + familiarity + implication|item_pair),  # familiarity + implication + grouping (optional)
+  data = df_reg2 %>% mutate(response_bin = if_else(grepl("True", response), 1, 0)),
+  family = bernoulli(),
+  prior = set_prior("lkj(3)", class = "cor"),
+  chains = 4,
+  cores = 4,
+  iter = 3000,
+  control = list(adapt_delta=.9),
+  file="../local/fit_imp_exp2_max_bin"
 )
 
 # Premises
@@ -425,6 +464,20 @@ fit_imp_maximal3 <- brm(
   iter = 3000,
   control = list(adapt_delta = .95),
   file="../local/fit_imp_rep_maximal3"
+)
+
+fit_imp_maximal3_bin <- brm(
+  response_bin ~ familiarity + implication + B_implied_true + 
+    (1 + familiarity + implication|subj_id) + 
+    (1 + familiarity + implication|item),  # familiarity + implication + grouping (optional)
+  data = df_reg3_noflag %>% mutate(response_bin = if_else(grepl("True", response), 1, 0)),
+  family = bernoulli(),
+  prior = set_prior("lkj(3)", class = "cor"),
+  chains = 4,
+  cores = 4,
+  iter = 3000,
+  control = list(adapt_delta=.9),
+  file="../local/fit_imp_maximal3_bin"
 )
 
 ```
@@ -626,21 +679,24 @@ The effect is one of "illusory" truth because it occurs following "incidental ex
 
 ## Theories of the Illusory Truth Effect
 
-Why should incidental exposure affect later ratings of truth? Gilbert [-@gilbert1991] proposed that any idea entertained is by default first believed and must later be "unbelieved." However, predominant theoretical accounts attribute illusory truth effects not to belief but rather to metacognitive experiences of fluency or familiarity [@dechene.etal2010]. Research on metacognition has shown that people's behavior and judgments are not only influenced by the content of their thoughts, but also by the phenomenological experience of processing those thoughts [@alter.oppenheimer2009; @schwarz2015].
+Why should incidental exposure affect later ratings of truth? Gilbert [-@gilbert1991] proposed that any idea entertained is by default first believed and must later be "unbelieved." This perspective offers one explanation for the illusory truth effect: people might simply believe what they are told, even when that exposure is incidental, or the pragmatics of the situation indicate that they should withhold judgment [@garcia-marques.etal2015; @silva.etal2017; @unkelbach.rom2017].
 
-Metacognitive processing "fluency" is the experienced ease of processing or thinking about information [@alter.oppenheimer2009; @wanke.hansen2015]. When thinking is easy and fluent, people tend to judge the targets of that thinking more favorably than if thinking is challenging and disfluent [@wanke.etal1997]. A number of findings have shown that processing fluency contributes to the illusory truth effect: Incidental prior exposure to statements makes later processing of those statements more fluent, and this metacognitive experience of fluency leads people to rate those statements as more true [@difonzo.etal2016; @fazio.etal2015; @unkelbach2007; @wang.etal2016].
+In contrast, rather than imagine people are truly so credulous, another set of theoretical accounts attribute illusory truth effects to metacognitive experiences of fluency or familiarity [@dechene.etal2010], rather than genuine influences on beliefs. Research on metacognition has shown that people's behavior and judgments are not only influenced by the content of their thoughts, but also by the phenomenological experience of processing those thoughts [@alter.oppenheimer2009; @schwarz2015]. Metacognitive processing "fluency" is the experienced ease of processing or thinking about information [@alter.oppenheimer2009; @wanke.hansen2015]. When thinking is easy and fluent, people tend to judge the targets of that thinking more favorably than if thinking is challenging and disfluent [@wanke.etal1997]. A number of findings have shown that processing fluency contributes to the illusory truth effect: Incidental prior exposure to statements makes later processing of those statements more fluent, and this metacognitive experience of fluency leads people to rate those statements as more true [@difonzo.etal2016; @fazio.etal2015; @unkelbach2007; @wang.etal2016].
 
 Metacognitive fluency can derive from different sources, and several different types have been shown to influence ratings of truth. Fluency can be *perceptual*: statements printed more clearly or in easier-to-read fonts are rated as more true [@ReberSchwarz1999Effects]. Fluency can be influenced by *memory retrieval*, such that statements that are easier to retreive from memory are rated as more true [@BeggEtAl1992dissociation]. And fluency can also be semantic or *conceptual* in nature: concepts that are semantically primed are seen as better answers to trivia questions [@KelleyLindsay1993Remembering], and statements evoking previously-activated concepts are rated as more true [@silva.etal2017].
     
 Other researchers have attributed the illusory truth effect to familiarity [e.g. @arkes.etal1991; @mitchell.etal2006]. Prior exposure to statements engenders a feeling of familiarity upon re-exposure to those statements. This metacognitive feeling of familiarity provides a cue that leads people to infer the statement is more likely to be true.
 
-Both theoretical accounts provide a similar overall view of the illusory truth effect: Roughly, when asked whether something is true or false, people search their memory for knowledge pertaining to belief in the statement, but they also rely on their metacognitive experiences of familiarity and fluency. Reliance on metacognitive experiences may be, at least to some extent, adaptive: Familiarity and fluency are both signs that we have “heard this somewhere before.” According to foundational theories of communication, a general assumption that communicators strive to make true utterances is a prerequisite for successful communication and social functioning [@grice1989]. Thus, if having “heard something before” suggests that someone said it, then ecologically this is a reasonable cue to truth. Psychological studies that elicit the illusory truth effect hijack these metacognitive heuristics: They provide this sense of familiarity or fluency, but from a communicative context that lacks any reasonable assumption of truth.
+Both metacognitive accounts provide a similar overall view of the illusory truth effect: Roughly, when asked whether something is true or false, people search their memory for knowledge pertaining to belief in the statement, but they also rely on their metacognitive experiences of familiarity and fluency. Reliance on metacognitive experiences may be, at least to some extent, adaptive: Familiarity and fluency are both signs that we have “heard this somewhere before.” According to foundational theories of communication, a general assumption that communicators strive to make true utterances is a prerequisite for successful communication and social functioning [@grice1989]. Thus, if having “heard something before” suggests that someone said it, then ecologically this is a reasonable cue to truth. On this account, psychological studies that elicit the illusory truth effect hijack these metacognitive heuristics: They provide this sense of familiarity or fluency, but from a communicative context that lacks any reasonable assumption of truth.
 
 ## Incidental Exposure and Belief
 
 There is something unsettling about the illusory truth effect and the lack of agency seems to imply about our own thinking. Even more worrisome, there could be important societal implications if merely being exposed to an idea causes people to adopt it as a belief: Pennycook and colleagues [-@pennycook.etal2018] argue that the illusory truth effect, combined with an environment of pervasive misinformation, has important consequences for the functioning of democratic society [also see @UnkelbachEtAl2019Truth]. The illusory truth effect suggests that incidental exposure to misinformation could have impacts that cannot be stopped by fact-checking labels [@pennycook.etal2018], nor effectively curbed by retractions or corrective information [c.f. @ecker.etal2011; @lewandowsky.etal2012]. 
 
-However, there are more to _beliefs_ than ratings of truth. Though a person’s assent to a proposition (whether they agree with or judge statements expressing it to be truthful) is an important marker and convenient measure of belief, other features of belief are just as essential. For one, beliefs imply other beliefs: for instance, believing that “it is sunny out” implies the belief that “it is daytime”. And believing misinformation, such as “Dominion voting machines were rigged in the 2020 U.S. election” might imply the belief that “Donald Trump actually won the 2020 U.S. election.” Beliefs also inform action and decision-making, and whether or not someone holds a belief can be judged (at least partly) from their decisions. When truly believed, misinformation can have serious consequences. For instance, a recent study found that people who marked just one piece of vaccine misinformation as accurate were nearly twice as likely to be unvaccinated against COVID-19 compared to those who did not endorse any vaccine misinformation [@ognyanova.etal2021]. 
+The extent of these impacts depends upon the source of the illusory truth effect, whether it is a product of metacognitive processes or results from the adoption of incidentally experienced information as beliefs. Beliefs inform actions and decision-making: When truly believed, misinformation can have serious consequences. For instance, a recent study found that people who marked just one piece of vaccine misinformation as accurate were nearly twice as likely to be unvaccinated against COVID-19 compared to those who did not endorse any vaccine misinformation [@ognyanova.etal2021]. In addition, beliefs imply other beliefs: for instance, believing that “it is sunny out” implies the belief that “it is daytime”. And believing misinformation, such as “Dominion voting machines were rigged in the 2020 U.S. election” might imply the belief that “Donald Trump actually won the 2020 U.S. election.” 
+
+
+<!-- To be clear, there are more to _beliefs_ than ratings of truth. Though a person’s assent to a proposition (whether they agree with or judge statements expressing it to be truthful) is an important marker and convenient measure of belief, other features of belief are just as essential. For one, beliefs imply other beliefs: for instance, believing that “it is sunny out” implies the belief that “it is daytime”. And believing misinformation, such as “Dominion voting machines were rigged in the 2020 U.S. election” might imply the belief that “Donald Trump actually won the 2020 U.S. election.” Beliefs also inform action and decision-making, and whether or not someone holds a belief can be judged (at least partly) from their decisions. When truly believed, misinformation can have serious consequences. For instance, a recent study found that people who marked just one piece of vaccine misinformation as accurate were nearly twice as likely to be unvaccinated against COVID-19 compared to those who did not endorse any vaccine misinformation [@ognyanova.etal2021].  -->
 
 <!-- It is important to distinguish between statements and the propositions or ideas they express. Two different statements might express the same proposition: the pair of statements "I went to the store the day before yesterday" and "I went to the store two days ago" is one example. When incidental exposure produces metacognitive experiences like fluency, this might lead to increased endorsement of a specific statement, without truly affecting a person's attitude toward the proposition it represents. Instead, the effects of prior exposure would depend on features of subsequently-seen statements (e.g. lexical similarity: sharing words; or conceptual similarity: sharing concepts), rather than the propositions they express. -->
 
@@ -648,11 +704,13 @@ However, there are more to _beliefs_ than ratings of truth. Though a person’s 
 knitr::include_graphics("theory-fig.pdf")
 ```
 
-Figure \@ref(fig:theory-fig) depicts our hypotheses concerning the causal relationships between latent beliefs, metacognitive experiences, and overt behaviors such truth ratings and actions. As shown in the figure, experiences or manipulations that affect metacognitive experiences, such as incidental exposure, might produce increased truth ratings for statements expressing $P$ (either through lexical or conceptual similarity). However, beliefs should be expected to produce additional consequences. Here, we focus on inferences: a manipulation affecting belief in $P$ should increase truth ratings for statements expressing some proposition $Q$ where $P$ implies $Q$, and decrease belief in $R$ where $P$ implies $\neg R$. Figure \@ref(fig:theory-fig) also depicts a possible relation between metacognitive experiences and statements expressing $Q$. Where a statement $S_Q$ expressing $Q$ invokes a similar set of concepts as $S_P$, conceptual fluency might produce increased truth ratings. 
+Some researchers have argued that the illusory truth effect itself demonstrates an influence of prior exposure on beliefs [e.g. @garcia-marques.etal2015]. Yet as these points illustrate, there is more to _belief_ than ratings of truth. Though a person’s assent to a proposition (whether they agree with or judge statements expressing it to be truthful) is an important marker and convenient measure of belief, these other features are just as essential. Moreover, we argue that where effects of incidental exposure on truth judgments are plausibly attributable to well-established metacognitive processes, these effects do not generally constitute evidence for a change in beliefs.
 
-Crucially, our theory draws no connection between metacognitive experiences and reduced truth judgments for statements expressing $R$ where $P$ implies $\neg R$. Such a connection would require a cogent theory of how conceptual "disfluency" might be engendered to reduce truth judgments without the process of inference that would implicate changes in belief. Current accounts have not developed such a theory [e.g. c.f. @alter.oppenheimer2009; @VogelEtAl2020Truth], and it appears unlikely to be workable: people frequently encounter chains of statements invoking different concepts, yet they do so seemingly without issue, as considering one topic does not necessarily make it more difficult to consider another unrelated topic.
+Nevertheless, these wider consequences can help to determine whether incidental exposure to information modifies beliefs or influences judgments solely through metacognitive processes. Figure \@ref(fig:theory-fig) depicts a set of hypotheses concerning the causal relationships between latent beliefs, metacognitive experiences, and overt behaviors such truth ratings and actions. As shown in the figure, experiences or manipulations that affect metacognitive experiences, such as incidental exposure, might produce increased truth ratings for statements expressing $P$ (either through lexical or conceptual similarity). However, beliefs should be expected to produce additional consequences. Here, we focus on inferences: a manipulation affecting belief in $P$ should increase truth ratings for statements expressing some proposition $Q$ where $P$ implies $Q$, and decrease belief in $R$ where $P$ implies $\neg R$. Figure \@ref(fig:theory-fig) also depicts a possible relation between metacognitive experiences and statements expressing $Q$. Where a statement $S_Q$ expressing $Q$ invokes a similar set of concepts as $S_P$, conceptual fluency might produce increased truth ratings. 
 
-We argue that where effects of incidental exposure on truth judgments are attributable to metacognitive processes, these effects do not generally constitute evidence for a change in beliefs. Applying the theoretical framework sketched in Figure \@ref(fig:theory-fig), cases where incidental exposure to a proposition $P$ increases truth ratings for statements $S_P$ expressing that proposition do not generally constitute evidence that incidental exposure has affected beliefs, since there is a causal pathway between exposure and this result that does not pass through belief. Likewise, evidence of exposure to $S_P$ increasing truth ratings for $S_Q$ where $S_Q$ shares a similar set of concepts with $S_P$ do not constitute evidence for effects on beliefs. However, evidence that exposure decreases truth ratings for $S_R$ or increases truth ratings for $S'_Q$ where $S'_Q$ does not directly share concepts with $S_P$ would constitute evidence for effects on beliefs. 
+Crucially, our diagram draws no connection between metacognitive experiences and reduced truth judgments for statements expressing $R$ where $P$ implies $\neg R$. Such a connection would require a cogent theory of how conceptual "disfluency" might be engendered to reduce truth judgments without the process of inference that would implicate changes in belief. Current accounts have not developed such a theory [e.g. c.f. @alter.oppenheimer2009; @VogelEtAl2020Truth], and it appears unlikely to be workable: people frequently encounter chains of statements invoking different concepts, yet they do so seemingly without issue, as considering one topic does not necessarily make it more difficult to consider another unrelated topic.
+
+Applying the causal model sketched in Figure \@ref(fig:theory-fig), cases where incidental exposure to a proposition $P$ increases truth ratings for statements $S_P$ expressing that proposition do not, in our view, constitute evidence that incidental exposure has affected beliefs, since there is a potential causal pathway between exposure and this result that does not pass through belief. Likewise, evidence of exposure to $S_P$ increasing truth ratings for $S_Q$ where $S_Q$ shares a similar set of concepts with $S_P$ do not constitute evidence for effects on beliefs. However, evidence that exposure decreases truth ratings for $S_R$ or increases truth ratings for $S'_Q$ where $S'_Q$ does not directly share concepts with $S_P$ would constitute evidence for effects on beliefs. 
 
 Practically speaking, the extent to which effects of incidental exposure operate entirely through metacognitive processes stands to determine the extent of their real-world consequences. Generally, it is the wider consequences of belief (beyond truth ratings for a specific statement) that should be most concerning. If effects of incidental exposure operate only through metacognitive influences, then the impact of prior exposure depends on a subsequent re-exposure to a now fluent or familiar situation or statement (which might include one activating similar concepts). To be sure, metacognitive effects might have important consequences even if they do not affect beliefs, such as increasing the tendency to share information online after having been exposed previously [@vellani.etal2023]. Still, the impact of metacognitive effects seem less likely to drive inferences or decision-making in more novel situations. Instead, their influences would be constrained to operating within contexts similar to the initial exposure.
 
@@ -662,23 +720,28 @@ A crucial feature of belief is that beliefs are connected with other related bel
 
 A key test of the illusory implication effect as opposed to other illusory truth effects is whether prior incidental exposure can _reduce_ judgments of truth. The experience of fluency is inherently relative: a metacognitive experience is only fluent or disfluent with respect to some point of comparison. For instance, utterances can be made relatively fluent by rhyming (McGlone & Tofighbakhsh, 2000) or they can be made relatively disfluent with the addition of speech markers like "um" and "uh" Brennan & Williams (1995). However, in the case of repetition-induced fluency (whether conceptual, lexical, or otherwise), repetition can produce fluency, but it is less clear how a such a manipulation might produce disfluency. Thus, it is difficult to see how effects of incidental exposure that reduce truth ratings can be explained by metacognitive factors.
 
-A handful of existing findings provide some preliminary evidence for our hypothesized illusory implication effect. A number of researchers have found that incidental exposure affects truth ratings for novel statements contradicting previously exposed statements [@garcia-marques.etal2015; @silva.etal2017; @unkelbach.rom2017].  To our knowledge, three experiments have found evidence for this pattern of influence: Garcia-Marques (n = 58) [@garcia-marques.etal2015], Silva et al. [-@silva.etal2017] (Exp. 2, n = 45), and Unkelbach and Rom [-@unkelbach.rom2017] (Exp. 3; self-referent condition; n = 27). Such a pattern is not easily attributable to purely metacogntiive processes. Instead, several of these researchers [e.g., @garcia-marques.etal2015; @silva.etal2017] attribute these lowered truth ratings to the "meaning of the statements" rather than to conceptual fluency.
+A handful of existing findings provide some preliminary evidence for our hypothesized illusory implication effect. A number of researchers have found that incidental exposure affects truth ratings for novel statements contradicting previously-seen statements [@garcia-marques.etal2015; @silva.etal2017; @unkelbach.rom2017]. To our knowledge, three studies have found evidence for this specific pattern of influence: Garcia-Marques ($n = 58$) [@garcia-marques.etal2015], Silva et al. [-@silva.etal2017] (Exp. 2, $n = 45$), and Unkelbach and Rom [-@unkelbach.rom2017] (Exp. 3; $n = 89$). Such a pattern is not easily attributable to purely metacogntiive processes.
+<!-- Instead, these researchers [e.g., @garcia-marques.etal2015; @silva.etal2017] attribute these lowered truth ratings to the "meaning of the statements" rather than to conceptual fluency. -->
 
 Garcia-marques and colleagues [-@garcia-marques.etal2015] induced incidental exposure by asking participants to rate how interesting statements were, warning them that half were true and half false. After this initial task inducing incidental exposure, a subsequent quiz featured a mix of novel statements, repeated statements, and statements contradicting those previously seen either immediately or after a 1-week delay. In the immediate-test condition, contradictory statements were rated as less true than novel statements.[^bacon] 
 
 [^bacon]: These researchers used materials following those used by Bacon [-@bacon1979, Exp. 2], who induced incidental exposure through a series of true-or-false quizzes. In this study, contradictory statements were rated as less true following a two-week delay, but only when participants were warned that the statements had been changed. This warning provides an avenue by which metacognitive cues could be used to inform truth judgments about contradictions without inducing beliefs.
 
-Silva and colleagues [-@silva.etal2017] found that exposure to statements increased truth ratings for paraphrases of those statements that expressed the same proposition while sharing only minimal surface-level linguistic features. These researchers explained their findings as resulting from conceptual fluency produced by the initial exposure to statements: prior exposure "activates" the relevant concepts, easing with their retrieval and use in processing subsequent statements and thereby producing different metacognitive experiences. Silva and colleagues [-@silva.etal2017] also found that exposure to statements *decreased* truth ratings for rephrased contradictions of those statements. However, these findings must be qualified by the exposure context used here: Silva and colleagues asked participants to rate their interest in statements, but did not warn them that the statements could be true or false. Thus the pragmatics of the task are unclear, and participants might have believed these statements because they understood them to be presented as facts.
+Silva and colleagues [-@silva.etal2017] found that exposure to statements increased truth ratings for paraphrases of those statements that expressed the same proposition while sharing only minimal surface-level linguistic features. These researchers explained their findings as resulting from conceptual fluency produced by the initial exposure to statements: prior exposure "activates" the relevant concepts, easing with their retrieval and use in processing subsequent statements and thereby producing different metacognitive experiences. However, Silva and colleagues [-@silva.etal2017] also found that exposure to statements *decreased* truth ratings for rephrased contradictions of those statements, which we identify as a key test of an "illusory implication" effect. 
 
-Unkelbach and Rom [-@unkelbach.rom2017] examined both implied and contradictory statements. They found that exposure to implied statements increased truth ratings (Exp 4.) and that statements saw a significant decrease in truth ratings following incidental exposure to their contradictions in a "self-relevant" processing condition (Exp. 4). Crucially, the results of this experiment appear to preclude any purely fluency-based account of reduced truth ratings following incidental exposure to contradictory statements: These researchers found that responses were faster for contradictions of previously-seen statements than for novel statements, indicating that processing of these statements was *more* rather than less fluent. Thus even if an appropriate notion of "conceptual disfluency" could be developed, it is unlikely it could be an appropriate account of these findings [@unkelbach.rom2017]. Instead, they and other authors theorize that people tend to believe statements so long as they are generally coherent with respect to existing knowledge, even if they are presented in a context of incidental exposure [@garcia-marques.etal2015; @gilbert1991; @silva.etal2017; @unkelbach.rom2017].
+Similarly, Unkelbach and Rom [-@unkelbach.rom2017] examined both implied and contradictory statements. They found that exposure to implied statements increased truth ratings (Exp 4) and that statements saw a significant decrease in truth ratings following incidental exposure to their contradictions (Exp. 3). Crucially, the results of this experiment appear to preclude any purely fluency-based account of reduced truth ratings following incidental exposure to contradictory statements: These researchers found that responses were faster for contradictions of previously-seen statements than for novel statements, indicating that processing of these statements was *more* rather than less fluent. Thus, even if an appropriate notion of "conceptual disfluency" could be developed, it is unlikely it could be an appropriate account of these findings [@unkelbach.rom2017]. Instead, they and other authors theorize that people tend to believe statements so long as they are generally coherent with respect to existing knowledge, even if they are presented in a context of incidental exposure [@garcia-marques.etal2015; @gilbert1991; @silva.etal2017; @unkelbach.rom2017].
 
-The presently-hypothesized illusory inference effect is a key theoretical link demonstrating the connection between incidental exposure and _beliefs_, and  all of the attendant downstream consequences associated with beliefs. A handful of prior findings suggest the existence of such an effect, yet this existing evidence seems far from dispositive, being based on only a handful of small studies with sometimes inconsistent methods.
+However, these last two sets of findings must be qualified by the exposure context used in these studies: These researchers asked participants to make incidental judgments about these statements but did not warn them that the statements could be true or false [@silva.etal2017; @unkelbach.rom2017]. Thus, the pragmatics of the task are unclear, and participants might have believed these statements because they understood them to be presented as facts.[^urnote]
+
+[^urnote]: Unkelbach and Rom [-@unkelbach.rom2017] did test a "warning" condition in another experiment of a similar design (Exp. 1), but here did not find a significant reduction in truth judgments for contradictions of previously-seen statements.
+
+The presently-hypothesized illusory inference effect is a key theoretical link demonstrating the connection between incidental exposure and _beliefs_, and  all of the attendant downstream consequences associated with beliefs. A handful of prior findings suggest the existence of such an effect, yet we do not take this existing evidence to be dispositive.
 
 ## The present studies
 
-Prior work tested the effect of incidental exposure on implied statements using only direct contradictions of the original statement (or paraphrases of direct contradictions). Here, we sought to further test for an "illusory implication effect" by testing the effect of incidental exposure to statements on their more distant logical implications. To do so, we designed a series of studies to examine whether incidental exposure to one statement (the “premise”) could affect truth ratings for another statement this premise would logically entail to be either true or false (the “implication”). 
+Existing research examining the effects of incidental exposure on implied statements has two key limitations. First, it has often been conducted in ambiguous contexts where participants might not understand that statements might be true or false, and that therefore do not always clearly induce incidental exposure. We address this through study designs inducing clear cases of incidental exposure. Second, prior work has only examined effects on direct contradictions of originally-seen statements (or paraphrases of direct contradictions). Here, we sought to further test for an "illusory implication effect" by testing the effect of incidental exposure to statements on their more distant logical implications. To do so, we designed a series of studies to examine whether incidental exposure to one statement (the “premise”) could affect truth ratings for another statement this premise would logically entail to be either true or false (the “implication”). 
 
-In our studies, we sought to eliminate as much as possible the role of perceptual and conceptual fluency in affecting truth judgments. These efforts are aimed at demonstrating as clearly as possible a causal pathway  between incidental exposure and effects on truth ratings through changes in belief. That is, establishing a pathway from exposure to increased truth ratings for implications $Q$ and decreased truth ratings for contradictions $R$. Compared with prior work, we developed materials involving more distant inferences that do not afford direct one-to-one mappings between shared concepts in the premise and implication statements. Thus, any reduction in truth ratings for the contradicted statements following exposure to the premise statements are not reasonably attributable to disfluency (closing the alternate pathway depicted in Figure X). For instance, one statement pair was the premise statement, “No U.S. astronauts have died since the Challenger explosion in 1986” paired with the implied statement, “The space shuttle Columbia disintegrated over Texas in 2003” (true, but contradicted by the "premise"). In contrast with prior work examining conflicting statements, there is no direct one-to-one mapping of concepts between the two statements. Instead, a chain of inferences must be developed for a conclusion to be drawn: that the space shuttle Columbia contained astronauts, that its disintegration would have killed them, and that 2003 is later than 1986.
+In our studies, we sought to eliminate as much as possible the role of perceptual and conceptual fluency in affecting truth judgments. These efforts are aimed at demonstrating as clearly as possible a causal pathway  between incidental exposure and effects on truth ratings through changes in belief. That is, establishing a pathway from exposure to increased truth ratings for implications $Q$ and decreased truth ratings for contradictions $R$. Compared with prior work, we developed materials involving more distant inferences that do not afford direct one-to-one mappings between shared concepts in the premise and implication statements. Thus, any reduction in truth ratings for the contradicted statements following exposure to the premise statements are not reasonably attributable to disfluency (closing the alternate pathway depicted in Figure \@ref(fig:theory-fig)). For instance, one statement pair was the premise statement, “No U.S. astronauts have died since the Challenger explosion in 1986” paired with the implied statement, “The space shuttle Columbia disintegrated over Texas in 2003” (true, but contradicted by the "premise"). In contrast with prior work examining conflicting statements, there is no direct one-to-one mapping of concepts between the two statements. Instead, a chain of inferences must be developed for a conclusion to be drawn: that the space shuttle Columbia contained astronauts, that its disintegration would have killed them, and that 2003 is later than 1986.
 
 Additionally, we make several further contributions toward definitively demonstrating the illusory implication effect beyond existing studies by 1) testing the effect with large samples of participants (present studies $N = 1020$), 2) utilizing modern hierarchical statistical modeling methods to generalize beyond the exact items used, and 3) taking great pains to ensure that participants' truth ratings are not influenced by task demands (Experiments 2 and 3). Across our studies, we find further compelling evidence for this “illusory implication” effect, indicating that incidental exposure has genuine impacts on beliefs extending beyond those attributable to metacognitive cues.
 
@@ -694,10 +757,10 @@ All experiments were preregistered prior to data collection and all materials, d
 
 A total of 400 Participants were recruited through CloudResearch. Basic attention check questions were used to screen inattentive participants. These questions asked participants to simply give a particular response. Participants who failed any attention checks or who indicated during debrief that they had searched online for question answers were excluded from analysis. This left a final sample of `r nrow(df_demo)` (`r exp1_n_f` female, median age `r exp1_age` years-old).
 
-```{r fig-exp1, fig.env="figure", fig.pos = "h", fig.width=6, fig.height = 3, fig.align = "center", fig.cap="Left: Test-phase responses and model estimates for Implication statements in Experiment 3, broken down by exposure (exposed vs. unexposed) and implication type (contradicted and entailed). Bars represent observed proportions. Points and errorbars indicate model predictions with 95% credible intervals. Right: Difference in proportions of responses between exposed and unexposed conditions at test, aggregated across true and false response options. Bars indicate observed differences, with points and errobars indicating model predictions and 50% credible intervals."}
+```{r fig-exp1, fig.env="figure", fig.pos = "h", fig.width=6, fig.height = 3, fig.align = "center", fig.cap="Left: Test-phase responses and model estimates for Implication statements in Experiment 3, broken down by exposure (exposed vs. unexposed) and implication type (contradicted and entailed). Bars represent observed proportions. Points and errorbars indicate model predictions with 95% credible intervals. Right: Difference in proportions of responses between exposed and unexposed conditions at test, aggregated across true and false response options. Bars indicate observed differences, with points and errobars indicating binary logistic regression model predictions and 50% credible intervals."}
 library(tidybayes)
 
-make_exp_figure(df_reg %>% filter(exposure_cond=="quiz"), fit_imp_quiz_int)
+make_exp_figure_two_models(df_reg %>% filter(exposure_cond=="quiz"), fit_imp_quiz_int, fit_imp_quiz_int_bin)
 
 ```
 
@@ -761,18 +824,22 @@ A regression model was used to tease apart the possible metacognitive effects of
 
 Table 1 presents a summary of the posterior distribution estimated for the population-level coefficients in this model. The results indicate that both familiarity and the implication of the premise statements affected participants’ truth ratings. Figure 1 also visualizes the relevant posterior predictive distributions for this model's fixed effects, ignoring the random effects structure. The model does well in predicting the proportions of responses, with approximately accurate coverage as expected for the different sets of intervals. It is worth noting that these model estimates cannot be expected to perfectly correspond to the observed proportions, because the effects of individual items and participants have been (at least partially) accounted for in the random effects of the models.
 
-Somewhat surprisingly, the effects of exposure on participants’ truth ratings for the premise statements were very subtle. Our primary preregistered test compared participants’ truth ratings for the exposed premise statements at test against their ratings for another set of 8 unexposed premise statements. This analysis did not find evidence of any meaningful illusory truth effect, with a posterior estimate for the exposure parameter near zero. However, a secondary preregistered analysis comparing participants’ initial truth judgments for the premise-statements to their later truth judgments for those same statements at test did find an increase in endorsements, $\beta =$ `r report_reg_coef(fit_premise_within, "phasetest")`.
+Somewhat surprisingly, the effects of exposure on participants’ truth ratings for the premise statements were very subtle. Our primary preregistered test compared participants’ truth ratings for the exposed premise statements at test against their ratings for another set of 8 unexposed premise statements. This analysis did not find evidence of any meaningful illusory truth effect, with a posterior estimate for the exposure parameter near zero. However, an additional preregistered analysis comparing participants’ initial truth judgments for the premise-statements to their later truth judgments for those same statements at test did find an increase in endorsements, $\beta =$ `r report_reg_coef(fit_premise_within, "phasetest")`.
 
 Although the "quiz" presentation used in Experiment 1 is traditionally seen as providing "incidental exposure" to statements, asking participants to judge the truth of these items may have lead them to feel pressured to maintain consistency in their responses. Participants showed a general bias toward judging statements “true” during the exposure phase, responding with some variation of “true” for 71.8% of responses. Attempting to maintain consistency with these prior responses could have thus influenced their responses to the implication statements and thus the observed effect may be an artifact of the experimental context.
+
+### Secondary and exploratory analyses
+
+Examination of posterior predictive plots across predictor levels indicate some modest misspecification of the model. To corroborate the primary preregistered analysis, we conducted a secondary logistic regression analysis after binarizing responses into "true" and "false" categories. The estimate of the implication effect in this model was consistent with the primary preregistered analysis $\beta =$ `r report_reg_coef(fit_imp_quiz_int_bin, "implication")`. This model's predictions are plotted in Figure \@ref(fig:fig-exp1), right.
 
 # Experiment 2
 
 Experiment 2 was conducted to address the possibility that a pressure for internal consistency produced the effects on the implication-statement truth ratings observed in Experiment 1.
 
 
-```{r fig-exp2, fig.env="figure", fig.pos = "t", fig.width=6, fig.height = 3, fig.align = "center", fig.cap="Left: Test-phase responses and model estimates for Implication statements in Experiment 2, broken down by exposure (exposed vs. unexposed) and implication type (contradicted and entailed). Bars represent observed proportions. Points and errorbars indicate model predictions with 95% credible intervals. Right: Difference in proportions of responses between exposed and unexposed conditions at test, aggregated across true and false response options. Bars indicate observed differences, with points and errobars indicating model predictions and 50% credible intervals."}
+```{r fig-exp2, fig.env="figure", fig.pos = "t", fig.width=6, fig.height = 3, fig.align = "center", fig.cap="Left: Test-phase responses and model estimates for Implication statements in Experiment 2, broken down by exposure (exposed vs. unexposed) and implication type (contradicted and entailed). Bars represent observed proportions. Points and errorbars indicate model predictions with 95% credible intervals. Right: Difference in proportions of responses between exposed and unexposed conditions at test, aggregated across true and false response options. Bars indicate observed differences, with points and errobars indicating binary logistic regression model predictions and 50% credible intervals."}
 
-make_exp_figure(df_reg2, fit_imp_exp2)
+make_exp_figure_two_models(df_reg2, fit_imp_exp2, fit_imp_exp2_bin)
 ```
 
 
@@ -803,9 +870,14 @@ In addition, participant’s truth ratings for the premise statements in Experim
 
 The illusory implication effect for the implication statements was generally similar in magnitude to the illusory truth effect observed among the premise statements.
 
+### Secondary and exploratory analyses
+
+Examination of posterior predictive plots across predictor levels indicate a good fit of the ordinal regression model to participants' observed responses. Nevertheless, for consistency of presentation, we conducted a secondary logistic regression analysis after binarizing responses into "true" and "false" categories. The estimate of the implication effect in this model was consistent with the primary preregistered analysis $\beta =$ `r report_reg_coef(fit_imp_exp2_bin, "implication")`. This model's predictions are plotted in Figure \@ref(fig:fig-exp2), right. 
+
 # Experiment 3
 
 Finally, we sought to replicate these findings once again and to rule out the possibility that the illusory implication effect is a product of experimental idiosyncrasies, such as misapprehension of instructions or potential task demands. In Experiment 3, we ensured participants were attending carefully and understood the instructions through additional attention and comprehension checks. In addition, we evaluated the potential for unanticipated task demands by excluding from analysis any participants who had suspicions about the study or who guessed its true purpose.
+
 
 ## Method
 
@@ -827,11 +899,6 @@ Finally, six attention check questions were more tightly integrated into the tas
 
 ## Results
 
-```{r fig-exp3, fig.align='center', fig.width=6, fig.height = 3, fig.cap="Left: Test-phase responses and model estimates for Implication statements in Experiment 3, broken down by exposure (exposed vs. unexposed) and implication type (contradicted and entailed). Bars represent observed proportions. Points and errorbars indicate model predictions with 95% credible intervals. Right: Difference in proportions of responses between exposed and unexposed conditions at test, aggregated across true and false response options Bars indicate observed differences, with points and errorbars indicating model predictions and 50% credible intervals. Predictions were generated from a model fit excluding participants who in any way indicated suspicion about the purpose of the study."}
-
-make_exp_figure(df_reg3, fit_imp_maximal3)
-
-```
 
 Figure \@ref(fig:fig-exp3) presents the results from Experiment 3 as for prior experiments. The effects in Experiment 3 are notably subtler than in prior experiments, yet the key findings were again replicated. As shown in the right panel, contradictory premises increased false responses and decreased true responses, and the opposite pattern was observed for entailing statements.
 
@@ -841,6 +908,12 @@ First, in accordance with our preregistered analysis plan, we replicate the prim
 
 Next, to explore the possibility that these results might be influenced by task demands, we also carried out a parallel analysis excluding participants whose responses may have been impacted by their suspicions as to the true purpose of the study [@coles.frank2023]. We excluded both participants who explicitly stated they were suspicious when asked directly, and those who, when forced to guess in an open-ended response, guessed that the true purpose had to do with the first phase somehow affecting their responses in the second. Removing these participants did not substantially change the estimate of the implication effect, $\beta =$ `r report_reg_coef(fit_imp_maximal3, "implication")`.
 
+```{r fig-exp3, fig.pos = "H", fig.align='center', fig.width=6, fig.height = 3, fig.cap="Left: Test-phase responses and model estimates for Implication statements in Experiment 3, broken down by exposure (exposed vs. unexposed) and implication type (contradicted and entailed). Bars represent observed proportions. Points and errorbars indicate model predictions with 95% credible intervals. Right: Difference in proportions of responses between exposed and unexposed conditions at test, aggregated across true and false response options. Bars indicate observed differences, with points and errobars indicating binary logistic regression model predictions and 50% credible intervals. Plotted responses and model predictions exclude participants who in any way indicated suspicion about the purpose of the study. Note that, as before, these model predictions exclude random effects of items and subject and so will not necessarily align precisely with the observed data."}
+
+make_exp_figure_two_models(df_reg3_noflag, fit_imp_maximal3, fit_imp_maximal3_bin)
+
+```
+
 ```{r, showtable3, echo=F, message=F}
 mytable3
 ```
@@ -848,19 +921,25 @@ mytable3
 
 ### Secondary and exploratory analyses
 
+As with Experiment 1, examination of posterior predictive plots across predictor levels indicate some modest misspecification of the model. To corroborate the primary preregistered analysis, we conducted a secondary logistic regression analysis after binarizing responses into "true" and "false" categories. The estimate of the implication effect in this model was generally consistent with the primary preregistered analysis $\beta =$ `r report_reg_coef(fit_imp_maximal3_bin, "implication")`. This model's predictions are plotted in Figure \@ref(fig:fig-exp3), right. 
+
 In the regression models used in Experiments 1 through 3, a coefficient for prior exposure to a related statement is used to represent potential positive effects on truth ratings owing to metacognitive influences, such as fluency and familiarity. Consequently, identification of the "implication" effect coefficient rests on the assumption that the directional metacognitive effects of prior exposure are not accidentally confounded with item groups (contradicted and entailed statements). To assess the potential for confounding in the familiarity or fluency that exposure to the premise statements would likely engender for the implication statements, we examined the degree of surface-level overlap within each item pair. We compared the proportion of shared words (after lemmatization) between premise and implications within each item pair. As shown in Figure \@ref(fig:item-fluency-print-fig), there is no evidence for confounding between surface-level similarity and item types (median overlap = .19 in false-implied-true items, .21 in true-implied-false items) that would suggest differential effects of fluency or familiarity across types.
 
-```{r, item-fluency-print-fig, fig.align = "center", fig.cap = "Word-level overlap between premise and implication statements (after lemmatization)."}
+```{r, item-fluency-print-fig, fig.pos = "H", fig.align = "center", fig.cap = "Word-level overlap between premise and implication statements (after lemmatization)."}
 item_fluency_fig
 ```
 
 # Discussion 
 
-We observed an “illusory implication” effect across three preregistered experiments: incidental exposure to premises (e.g. that “The Tour de France has been held every year since its inception in 1903”) influenced participant’s truth ratings for examples of their logical implications (e.g. that “The Tour de France was still held during World War I and World War II”). Unlike the illusory truth effect, this effect cannot be easily explained by the effects of familiarity or fluency on the judgment process [cf. @arkes.etal1991; @fazio.etal2015; @unkelbach2007; @wang.etal2016]: whereas these metacognitive cues would be expected to uniformly increase endorsements, participants’ truth ratings for implication statements were both increased and decreased according to the implications of the corresponding premises. Thus, it appears that incidental exposure has a genuine effect on people’s beliefs beyond simply creating a sense of fluency.
+We observed an “illusory implication” effect across three preregistered experiments: incidental exposure to premises (e.g. that “The Tour de France has been held every year since its inception in 1903”) influenced participant’s truth ratings for examples of their logical implications (e.g. that “The Tour de France was still held during World War I and World War II”). Unlike the illusory truth effect, this effect cannot be easily explained by the effects of familiarity or fluency on the judgment process [cf. @arkes.etal1991; @fazio.etal2015; @unkelbach2007; @wang.etal2016]: whereas these metacognitive cues would be expected to uniformly increase endorsements, participants’ truth ratings for implication statements were both increased and decreased according to the implications of the corresponding premises. Thus, it appears that incidental exposure has a genuine effect on people’s beliefs beyond simply creating a sense of fluency or familiarity.
 
-What cognitive mechanism could explain these findings? One potential explanation is that incidental exposure to the premise statements leads participants to at least partially adopt them as beliefs. Simply entertaining the idea may create such an impression despite awareness of its ambiguous truth-value [@gilbert.etal1990; @gilbert1991; @garcia-marques.etal2015; @unkelbach.rom2017]. If so, this apparently occurs despite participant's awareness that the statements may be false, as ensured by constant reminders and comprehension checks in Experiment 3.
+What cognitive mechanisms could explain these findings? Broadly, our findings are most consistent with the perspective advocated by Gilbert [-@gilbert1991; @gilbert.etal1990], who argued that people adopt testimony as belief by default. In line with this, a number of researchers have sought to explain how exposure to a related statement can influence truth judgments for novel statements by concluding that statements are simply believed, even following incidental exposure [e.g., @garcia-marques.etal2015; @unkelbach.rom2017]. We concur with these claims, concluding that our best explanation is that incidental exposure to the premise statements leads participants to at least partially adopt them as beliefs that then influence judgments about the implication statements via a process of inference. If so, this apparently occurs despite participant's awareness that the statements may be false, as was carefully ensured by constant reminders and comprehension checks in Experiment 3. Simply entertaining an idea, even knowing it could be false, can apparently induce some measure of belief.
 
-Modern theorists do not conceive of beliefs as lists of propositiosn, but instead as subserved by structured mental models or intuitive theories of how the world works [e.g. @gelman.legare2011; @gerstenberg.tenenbaum2017; @powell.etal2023; @johnson-laird2001; @thagard1989]. Thus, coming to believe a statement entails updating one's mental models with the new information conveyed by that statement. A key feature of these mental models is their coherence: updating them is expected to have wide-ranging and coherent implications [@gerstenberg.tenenbaum2017; @powell.etal2023; @thagard1989]. In the context of incidental exposure effects, Unkelbach and Rom [-@unkelbach.rom2017] have proposed an account based on parallel constraint satisfaction within semantic networks, which might plausibly be elaborated to account for the present findings. In any case, we take the coherence of inferences following exposure to be evidence for a meaningful influence on people's mental models, and the key to our claim that incidental exposure influences beliefs. 
+Following from this same basic assumption, Unkelbach and Rom [-@unkelbach.rom2017] have proposed a more detailed process-level account of repetition-induced truth effects. According to their "Referential Theory", reading or hearing a statement activates the concepts to which it refers, where knowledge of these concepts is represented as a network of nodes connected by excitatory or inhibitory edges. A judgment of truth is made based on the overall coherence of the network, given the activation of concepts and their connections (e.g. an excitatory connection between two activated concepts would be coherent, but an inhibitory connection between two activated concepts would be incoherent). In a spirit similar to Gilbert [-@gilbert1991], the theory explains how repetition can increase judgments of truth by positing that exposure to a statement modifies these links in memory: "If information is new ... it will be instigated within memory, and the respective links will form" [@unkelbach.rom2017, p.113]. At test, repeated statements therefore have "on average more corresponding references which are coherently linked due to the prior presentation" [@unkelbach.rom2017, p.113].
+
+In contrast to the referential theory, we interpret our findings by directly appealing to beliefs and inferences, rather than any more specific representation, like coherentist networks. We take beliefs and attendant inferential processes to be core elements in the basic ontology of cognitive science, and so prefer an explanation that avoids positing additional intermediary mechanisms to explain this specific finding, and that allows for a plurality of potential representations. 
+
+Nevertheless, as emphasized by the referential theory [@unkelbach.rom2017], interrelations among beliefs and a broader notion of "coherence" are key to understanding these findings. Modern theorists generally do not conceive of beliefs as lists of propositions, but instead as subserved by structured mental models or intuitive theories of how the world works [@gelman.legare2011; @gerstenberg.tenenbaum2017; @powell.etal2023; @johnson-laird2001; @thagard1989]. These mental models might be represented in a variety of formats, such as simulations [e.g. @gerstenbergCounterfactualSimulationModel2020]; formal logics, programs, or grammars [e.g.  @BramleyEtAlLocal; @piantadosiLogicalPrimitivesThought2016; @OverlanEtAl2017Learning]; directed graphs [e.g., @GriffithsTenenbaum2005Structure; @powell.etal2023]; or, indeed, undirected graphs such as coherentist networks [e.g.,  @simonReduxCognitiveConsistency2004; @spellmanCoherenceModelCognitive1993; @thagardExplanatoryCoherence1989]. On our view, coming to believe a statement entails updating one's relevant mental models, whatever their formats, with the new information conveyed by that statement. Importantly, coherence is a key feature of all of these mental models, such that updating them is expected to have wide-ranging and coherent implications [@gerstenberg.tenenbaum2017; @powell.etal2023; @thagard1989]. We take the coherence of inferences following exposure to be evidence for a meaningful influence on people's mental models, and the key to our claim that incidental exposure influences beliefs. 
 
 Finally, it is worth clarifying that our findings and wider claims about the illusory implication effect are broadly consistent with existing metacognitive explanations of the illusory truth effect: we hypothesize that the illusory implication effect is a distinct and somewhat orthogonal effect, based in appreciation of the meaning of statements rather than solely in the metacognitive experiences they produce. Nevertheless, it remains clear that fluency plays a crucial role in the classic illusory truth effect, especially as evidenced by neuroscientific findings [@wang.etal2016] and by the findings indicating the effect can be reversed when the pragmatics of the exposure context are changed [@corneille.etal2020].
 
